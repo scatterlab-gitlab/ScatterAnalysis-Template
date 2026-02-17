@@ -43,8 +43,13 @@ clear; close all; clc;
 %-----------------------------------------------------------------------------------------------------------------------
 %{
 Rather than loading and unloading a data folder from Dropbox to debug the scatteranalysis script, the paths provided
-will always have their data readily available locally on the computer. There should only be about 10 or so images. This 
-way it does not take up a large amount of space, but is convienient enough to debug the script properly.
+will always have their data readily available locally on the computer.
+
+There should only be about 10 or so images.
+
+This way it does not take up a large amount of space, but is convienient enough to debug the script properly.
+
+Just set the variable folder.data_path to either mock_AAS_data_path or mock_ARS_data_path
 %}
 %-----------------------------------------------------------------------------------------------------------------------
 
