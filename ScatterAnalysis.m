@@ -39,11 +39,21 @@
 % Clear all variables, images, and command window to prepare for a new analysis 
 clear; close all; clc;
 
-%% FILE AND EXPERIMENT TYPE
+%% MOCK DATA FILE PATHS
+%-----------------------------------------------------------------------------------------------------------------------
+%{
+Rather than loading and unloading a data folder from Dropbox to debug the scatteranalysis script, the paths provided
+will always have their data readily available locally on the computer. There should only be about 10 or so images. This 
+way it does not take up a large amount of space, but is convienient enough to debug the script properly.
+%}
+%-----------------------------------------------------------------------------------------------------------------------
 
 % Mock data files for debugging
 mock_AAS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/MiscFiles/Mock-AAS-Data/PL-13649-Mock-AAS-Data';
 mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/MiscFiles/Mock-ARS-Data/PL-13649-Mock-ARS-Data';
+
+
+%% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
 folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/GWPAC_Lab_Data/ARS_TRS/2024_7_12_11_20_27_Crystaline_Silicon_SLED_ARS';
