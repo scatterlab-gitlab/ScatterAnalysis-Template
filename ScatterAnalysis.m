@@ -42,6 +42,7 @@ clear; close all; clc;
 %% FILE AND EXPERIMENT TYPE
 
 % Mock data files for debugging
+mock_AAS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/MiscFiles/Mock-AAS-Data/PL-13649-Mock-Data';
 
 % String path to the folder will all the data
 folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/GWPAC_Lab_Data/ARS_TRS/2024_7_12_11_20_27_Crystaline_Silicon_SLED_ARS';
