@@ -1183,27 +1183,21 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
         
-        if darkimages == 1
-          for z = 1:numROIs
-            plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
-                 ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
-                 'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
-          end
-            
-        else
-          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
-              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
-              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
-              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
-              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
-          ax5.FontSize = 18;
+        for z = 1:numROIs
+           plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
+               ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
+               'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
         end
 
-        text((200 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
+        TITLE = [sample, ' Image ', char(image_name)];
+
+        text((2850 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
             '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE, '\newline', TEMP],...
-            'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1])
+            'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1]);
+
         title([folder.sample_name,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
-        set(f2,'units','points','position',[0 0 480 480]) % make it a square
+
+        set(f2,'units','points','position',[0 0 480 480]); % make it a square
         
         set(ax5,'position',[0 0 1 1]) % make square axes fill the figure
         axis square;
