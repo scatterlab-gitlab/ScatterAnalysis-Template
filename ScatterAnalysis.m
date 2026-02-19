@@ -1011,8 +1011,6 @@ switch experiment
         colorbar;
         colormap('gray');
         ax1.CLim = [clim_Min, clim_Max];
-        % ax1.XTick = -8:1:8;
-        % ax1.YTick = -8:1:8;
         ax1.DataAspectRatio = [1 1 1];
 
         return
@@ -1047,6 +1045,10 @@ switch experiment
       % Convert integer scales into mm scales using calibrated value
       img_x_mm = img_x_centered / pix_per_mm;
       img_y_mm = img_y_centered / pix_per_mm;
+
+      % Pixel shift value
+      pixel_x_shift = (length(img_x)/2) / pix_per_mm;
+      pixel_y_shift = (length(img_y)/2) / pix_per_mm;
       
       imagesc(img_x_mm,img_y_mm,img.fit);
       
@@ -1184,20 +1186,21 @@ switch experiment
         
         if darkimages == 1
           for z = 1:numROIs
-            plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)), 'LineStyle',linestyle{z},'color',boxcolors{z}, ...
-                 'LineWidth',linewidth{z})
+            plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
+                 ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
+                 'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
           end
-
+            
         else
-            plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
-                ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
-                ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
-                ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
-                ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
-            ax5.FontSize = 18;
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax5.FontSize = 18;
         end
-        TITLE = [sample, ' Image ', char(image_name)];
-        text(2850, 3886, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
+
+        text((200 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
             '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE, '\newline', TEMP],...
             'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1])
         title([folder.sample_name,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
