@@ -61,13 +61,13 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 %% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
-folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/GWPAC_Lab_Data/ARS_TRS/2024_7_12_11_20_27_Crystaline_Silicon_SLED_ARS';
+folder.data_path = mock_AAS_data_path;
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'ARS';
+experiment = 'AAS';
 
 % Note to save as a text file about analysis specifics or changes
-note_text = 'Trying to get good axies to the CCD images';
+note_text = 'Trying to add properly scaled axies to the CCD images';
 
 % Sample Name - NO UNDERSCORES!!! Use spaces
 sample = 'Getting Axies';
@@ -116,6 +116,10 @@ use_power_monitor = 1;
 % If singledark = 0 uses all dark images to process subtracted image
 single_dark = 0;
 
+% If darkimages = 1 it will pull background images
+% If darkimages = 0 it will define Background ROI from within the image
+darkimages = 1;
+
 % If backgroundimage_texp = 1 it will use background based on exposure time
 % If backgroundimage_texp = 0 it will chose background based on angle
 use_background_exp = 0;
@@ -142,14 +146,14 @@ dark_clim_Min = 0;
 dark_clim_Max = 3000;
 
 % Min x value of ROI
-ROIxmin = 1602;
+ROIxmin = 1724;
 % Max x value of ROI
-ROIxmax = 2721;
+ROIxmax = 2493;
 
 % Min y value of ROI
-ROIymin = 1044;
+ROIymin = 1486;
 % Max y value of ROI
-ROIymax = 2050;
+ROIymax = 2371;
 
 % How far forward is the observed surface of the optic from the center of the
 % ARS optic holder on the table. [pixels]
@@ -685,23 +689,23 @@ switch experiment
       % Get exposure time from images
       exposure_time(n) = getexptime(imagedir,image_name);
       
+      if darkimages==1                                                       
+        % Read exposure times for the dark images
 
-
-      % determines if we are getting the background image using the exposure time of each image
-      if use_background_exp==1
-        % rewrites filename for the case where we are selecting dark image files based on their exposure time
-        image_name = [num2str(exposure_time(n)*100),'.fit'];
-
-        % gets the exposure time for the dark image
-        [texpB(n)] = getexptime(darkimagedir, image_name);
-
-      else
-        if single_dark == 1
-          % gets the exposure time for the one dark image 
-          [texpB(n)] = getexptime(darkimagedir, image_name(1));
-        else
+        % determines if we are getting the background image using the exposure time of each image
+        if use_background_exp==1
+          % rewrites filename for the case where we are selecting dark image files based on their exposure time
+          image_name = [num2str(exposure_time(n)*100),'.fit'];
           % gets the exposure time for the dark image
           [texpB(n)] = getexptime(darkimagedir, image_name);
+        else
+          if single_dark == 1
+            % gets the exposure time for the one dark image 
+            [texpB(n)] = getexptime(darkimagedir, image_name(1));
+          else
+            % gets the exposure time for the dark image
+            [texpB(n)] = getexptime(darkimagedir, image_name);
+          end
         end
       end
 
@@ -739,7 +743,20 @@ switch experiment
               sin(ellipse_theta(i)) + ycenter_ellipse(z);
         end
       end
-   
+    
+      % If not using dark images ROI for measuring background
+      if darkimages == 0
+        bxcenter = 620;
+        bycenter = 225;
+        bwidth = 50;
+        bheight = 50;
+  
+        % Corners of background ROI
+        bx1 = round(bxcenter - bwidth/2);
+        bx2 = round(bxcenter + bwidth/2);
+        by1 = round(bycenter - bheight/2);
+        by2 = round(bycenter + bheight/2);
+      end
 
   
       % Function that gets the date and time the image was taken from the image header
@@ -754,45 +771,52 @@ switch experiment
         % power_corrected(n) = polyval(correction_coefficients,power_time(n));
       end
       
-      % Read scattering image pixel values as doubles
-      image.fit = double(fitsread([imagedir,char(image_name)]));           
-      if lineremoval == 1
-          image.fit(:,1570) = image.fit(:,1569);
-      end
-      if use_background_exp==1
-        % Read dark image pixel values as doubles
-        image_dark.fit = double(fitsread([darkimagedir,num2str(exposure_time(n)*100),char('.fit')]));
 
+      if darkimages==1
+        % Read scattering image pixel values as doubles
+        image.fit = double(fitsread([imagedir,char(image_name)]));           
+        if lineremoval == 1
+            image.fit(:,1570) = image.fit(:,1569);
+        end
+        if use_background_exp==1
+          % Read dark image pixel values as doubles
+          image_dark.fit = double(fitsread([darkimagedir,num2str(exposure_time(n)*100),char('.fit')]));
+
+        else
+          % Read dark image pixel values as doubles
+          image_dark.fit = double(fitsread([darkimagedir,char(image_name)]));
+  
+          % The AAS experiment type will take a region of the image and
+          % calculate a scaling factor for the dark images 
+          % The line below is the sum of the region for the dark and
+          % bright images which will be used in the subtracted image
+          % calculations below
+  
+          Region_x1 = Region_xcenter - Region_xwidth;
+          Region_x2 = Region_xcenter + Region_xwidth;
+          Region_y1 = Region_ycenter - Region_ywidth;
+          Region_y2 = Region_ycenter + Region_ywidth;
+  
+          % Get Region counts
+          % Crop background image size
+          dark_Region.fit = image_dark.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
+          bright_Region.fit = image.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
+  
+          % bright_mubRegion = mean(mean(bright_Region.fit));
+          bright_Region_Counts = sum(sum(bright_Region.fit));
+  
+          % dark_mubRegion = mean(mean(dark_Region.fit)); 
+          dark_Region_Counts = sum(sum(dark_Region.fit));
+  
+          Factor = bright_Region_Counts/dark_Region_Counts;
+        end
+
+        img.fit = image.fit - (image_dark.fit*Factor);
+        
       else
-        % Read dark image pixel values as doubles
-        image_dark.fit = double(fitsread([darkimagedir,char(image_name)]));
-
-        % The AAS experiment type will take a region of the image and
-        % calculate a scaling factor for the dark images 
-        % The line below is the sum of the region for the dark and
-        % bright images which will be used in the subtracted image
-        % calculations below
-
-        Region_x1 = Region_xcenter - Region_xwidth;
-        Region_x2 = Region_xcenter + Region_xwidth;
-        Region_y1 = Region_ycenter - Region_ywidth;
-        Region_y2 = Region_ycenter + Region_ywidth;
-
-        % Get Region counts
-        % Crop background image size
-        dark_Region.fit = image_dark.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
-        bright_Region.fit = image.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
-
-        % bright_mubRegion = mean(mean(bright_Region.fit));
-        bright_Region_Counts = sum(sum(bright_Region.fit));
-
-        % dark_mubRegion = mean(mean(dark_Region.fit)); 
-        dark_Region_Counts = sum(sum(dark_Region.fit));
-
-        Factor = bright_Region_Counts/dark_Region_Counts;
+        % Read scattering image pixel values as doubles
+        img.fit = double(fitsread([imagedir,char(image_name)]));
       end
-
-      img.fit = image.fit - (image_dark.fit*Factor);
 
       for z = 1:numROIs
         % creates a mask that will be used to overlay with the image for analysis
@@ -814,10 +838,25 @@ switch experiment
 
       % This statement decides how background will be subtracted. From
       % background images or from defining a background ROI.
+        
+      if darkimages == 1
+        for z = 1:numROIs
+          % Calculate ARBccd summing over ROI pixel values and divide by exposure time
+          ARBccd(z,n) = sum(sum(RoI_mask(z).fit))./(exposure_time(n));
+        end
 
-      for z = 1:numROIs
-        % Calculate ARBccd summing over ROI pixel values and divide by exposure time
-        ARBccd(z,n) = sum(sum(RoI_mask(z).fit))./(exposure_time(n));
+      else
+        % Crop background image size
+        bRoI.fit = img.fit(by1:by2,bx1:bx2,:);
+
+        % mean of background
+        mubRoI = mean(mean(bRoI.fit));
+        
+        % subtract mean of background from ROI
+        RoIsub.fit = RoI_mask(1).fit - mubRoI;
+          
+        % sum over ROI and correct (Total intensity in RoI with background noise subtracted :: Single value) for exposure time
+        ARBccd(n) = sum(sum(RoIsub.fit))./(exposure_time(n));
       end
         
       % Calculate BRDF,PSD,and Sigma for each image BRDF calculation is based on Pmon_cal. Pmon_cal is the calibrated
@@ -929,25 +968,13 @@ switch experiment
       if locate_ROI == 1
         % Display the corrected image to determine wehre the ROI min's and
         % max's are, and input them accordingly
-
-        % Get the width and height of the CCD image (pixel integer)
-        img_x = 1:1:width(img.fit);
-        img_y = 1:1:height(img.fit);
-
-        % Pixel integer shifted so zero in center (integer)
-        img_x_centered = img_x-length(img_x)/2; 
-        img_y_centered = img_y-length(img_y)/2;
-
-        % Convert integer scales into mm scales using calibrated value
-        img_x_mm = img_x_centered / pix_per_mm;
-        img_y_mm = img_y_centered / pix_per_mm;
     
         % Plot the image and RoIs
         figure;
         ax1 = gca;
 
         % Plot the CCD image with the converted x and y values
-        imagesc(img_x_mm,img_y_mm,img.fit);
+        imagesc(img.fit);
         
         hold on;
 
@@ -957,18 +984,28 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
           
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(squeeze(x_ellipse(z,:)),squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
+          end
 
-        for z = 1:numROIs
-          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z}, ...
-               'LineWidth',linewidth{z});
-
-          plot([Region_x1 Region_x1 Region_x2 Region_x2 Region_x1], [Region_y1 Region_y2 Region_y2 Region_y1 Region_y1],'color','m','linewidth',1);
+          % Plot background box
+          plot([Region_x1 Region_x1 Region_x2 Region_x2 Region_x1], [Region_y1 Region_y2 Region_y2 Region_y1 Region_y1],'color','m','linewidth',1)
+            
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax1.FontSize = 18;
         end
 
-        text(200, 3886, [['Image Number: ',num2str(image_selector)],' \newline',['Exposure Time = ', ...
-             num2str(exposure_time(n)),' s'], ' \newline', ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'],...
-             ' \newline', ['Background Factor = ', num2str(sprintf('%.2f',Factor)),' (Bright Count / Dark Count)']],...
-             'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1]);
+        text(200, 3886, [['Image Number: ',num2str(image_selector)],...
+                         ' \newline',['Exposure Time = ',num2str(exposure_time(n)),' s'], ...
+                         ' \newline', ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'], ...
+                         ' \newline', ['Background Factor = ', num2str(sprintf('%.2f',Factor)),' (Bright Count / Dark Count)']],...
+                         'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1]);
 
         % CCD image properties
         colorbar;
@@ -1022,11 +1059,19 @@ switch experiment
       linewidth = {.5, .1, .1, .1, .1, .1};
       linestyle = {'-',':',':',':',':',':'};
       
+      if darkimages == 1
+        for z = 1:numROIs
+          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},...
+               'LineWidth',linewidth{z})
+        end
 
-      for z = 1:numROIs
-         plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
-               ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
-               'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
+      else
+        plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+             ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+             ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+             ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+             ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+        ax1.FontSize = 18;
       end
 
       title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
@@ -1137,21 +1182,26 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
         
-        for z = 1:numROIs
-           plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
-               ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
-               'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)), 'LineStyle',linestyle{z},'color',boxcolors{z}, ...
+                 'LineWidth',linewidth{z})
+          end
+
+        else
+            plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+                ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+                ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+                ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+                ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+            ax5.FontSize = 18;
         end
-
         TITLE = [sample, ' Image ', char(image_name)];
-
-        text((2850 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
+        text(2850, 3886, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
             '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE, '\newline', TEMP],...
-            'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1]);
-
+            'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1])
         title([folder.sample_name,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
-
-        set(f2,'units','points','position',[0 0 480 480]); % make it a square
+        set(f2,'units','points','position',[0 0 480 480]) % make it a square
         
         set(ax5,'position',[0 0 1 1]) % make square axes fill the figure
         axis square;
@@ -1351,20 +1401,21 @@ switch experiment
 
       % Get exposure time from images
       exposure_time(n) = getexptime(imagedir,image_name);
-                                                            
-      % Read exposure times for the dark images
+      
+      if darkimages==1                                                       
+        % Read exposure times for the dark images
 
-      % determines if we are getting the background image using the exposure time of each image
-      if use_background_exp==1
-        % rewrites filename for the case where we are selecting dark image files based on their exposure time
-        image_name = [num2str(exposure_time(n)*100),'.fit'];
-
+        % determines if we are getting the background image using the exposure time of each image
+        if use_background_exp==1
+          % rewrites filename for the case where we are selecting dark image files based on their exposure time
+          image_name = [num2str(exposure_time(n)*100),'.fit'];
+          % gets the exposure time for the dark image
+          [texpB(n)] = getexptime(darkimagedir, image_name);
+        else
+  
         % gets the exposure time for the dark image
         [texpB(n)] = getexptime(darkimagedir, image_name);
-      else
-
-      % gets the exposure time for the dark image
-      [texpB(n)] = getexptime(darkimagedir, image_name);
+        end
       end
 
       % Loops over set number of ROIs
@@ -1415,48 +1466,67 @@ switch experiment
               sin(ellipse_theta(i)) + ycenter_ellipse(z);
         end
       end
-   
-      % Read scattering image pixel values as doubles
-      image.fit = double(fitsread([imagedir,char(image_name)]));           
-      if lineremoval == 1
-          image.fit(:,1570) = image.fit(:,1569);
+    
+      % If not using dark images ROI for measuring background
+      if darkimages == 0
+          bxcenter = 620;
+          bycenter = 225;
+          bwidth = 50;
+          bheight = 50;
+      % Corners of background ROI
+          bx1 = round(bxcenter - bwidth/2);
+          bx2 = round(bxcenter + bwidth/2);
+          by1 = round(bycenter - bheight/2);
+          by2 = round(bycenter + bheight/2);
       end
-      if use_background_exp==1
+
+      if darkimages==1
+        % Read scattering image pixel values as doubles
+        image.fit = double(fitsread([imagedir,char(image_name)]));           
+        if lineremoval == 1
+            image.fit(:,1570) = image.fit(:,1569);
+        end
+        if use_background_exp==1
+          % Read dark image pixel values as doubles
+          image_dark.fit = double(fitsread([darkimagedir,num2str(exposure_time(n)*100),char('.fit')]));
+        else
+    
+
         % Read dark image pixel values as doubles
-        image_dark.fit = double(fitsread([darkimagedir,num2str(exposure_time(n)*100),char('.fit')]));
+        image_dark.fit = double(fitsread([darkimagedir,char(image_name)]));
+
+        % The AAS experiment type will take a region of the image and
+        % calculate a scaling factor for the dark images 
+        % The line below is the sum of the region for the dark and
+        % bright images which will be used in the subtracted image
+        % calculations below
+
+        Region_x1 = Region_xcenter - Region_xwidth;
+        Region_x2 = Region_xcenter + Region_xwidth;
+        Region_y1 = Region_ycenter - Region_ywidth;
+        Region_y2 = Region_ycenter + Region_ywidth;
+
+        % Get Region counts
+        % Crop background image size
+        dark_Region.fit = image_dark.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
+        bright_Region.fit = image.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
+
+        % bright_mubRegion = mean(mean(bright_Region.fit));
+        bright_Region_Counts = sum(sum(bright_Region.fit));
+
+        % dark_mubRegion = mean(mean(dark_Region.fit)); 
+        dark_Region_Counts = sum(sum(dark_Region.fit));
+
+        Factor = bright_Region_Counts/dark_Region_Counts;
+            
+        end
+
+        img.fit = image.fit - (image_dark.fit*Factor);
+   
       else
-  
-
-      % Read dark image pixel values as doubles
-      image_dark.fit = double(fitsread([darkimagedir,char(image_name)]));
-
-      % The AAS experiment type will take a region of the image and
-      % calculate a scaling factor for the dark images 
-      % The line below is the sum of the region for the dark and
-      % bright images which will be used in the subtracted image
-      % calculations below
-
-      Region_x1 = Region_xcenter - Region_xwidth;
-      Region_x2 = Region_xcenter + Region_xwidth;
-      Region_y1 = Region_ycenter - Region_ywidth;
-      Region_y2 = Region_ycenter + Region_ywidth;
-
-      % Get Region counts
-      % Crop background image size
-      dark_Region.fit = image_dark.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
-      bright_Region.fit = image.fit(Region_y1:Region_y2,Region_x1:Region_x2,:);
-
-      % bright_mubRegion = mean(mean(bright_Region.fit));
-      bright_Region_Counts = sum(sum(bright_Region.fit));
-
-      % dark_mubRegion = mean(mean(dark_Region.fit)); 
-      dark_Region_Counts = sum(sum(dark_Region.fit));
-
-      Factor = bright_Region_Counts/dark_Region_Counts;
-          
+        % Read scattering image pixel values as doubles
+        img.fit = double(fitsread([imagedir,char(image_name)]));
       end
-
-      img.fit = image.fit - (image_dark.fit*Factor);
 
       for z = 1:numROIs
         % creates a mask that will be used to overlay with the image for analysis
@@ -1483,9 +1553,23 @@ switch experiment
       % This statement decides how background will be subtracted. From
       % background images or from defining a background ROI.
         
-      for z = 1:numROIs
-        % Calculate ARBccd summing over ROI pixel values and divide by exposure time
-        ARBccd(z,n) = sum(sum(RoI_mask(z).fit))./(exposure_time(n));
+      if darkimages == 1
+        for z = 1:numROIs
+          % Calculate ARBccd summing over ROI pixel values and divide by exposure time
+          ARBccd(z,n) = sum(sum(RoI_mask(z).fit))./(exposure_time(n));
+        end
+
+      else
+        % Crop background image size
+        bRoI.fit = img.fit(by1:by2,bx1:bx2,:);
+        % mean of background
+        mubRoI = mean(mean(bRoI.fit));
+
+        % subtract mean of background from ROI
+        RoIsub.fit = RoI_mask(1).fit - mubRoI;
+         
+        % sum over ROI and correct (Total intensity in RoI with background noise subtracted :: Single value) for exposure time
+        ARBccd(n) = sum(sum(RoIsub.fit))./(exposure_time(n));
       end
         
       % Calculate BRDF,PSD,and Sigma for each image
@@ -1595,25 +1679,13 @@ switch experiment
       if locate_ROI == 1
         % Display the corrected image to determine wehre the ROI min's and
         % max's are, and input them accordingly
-
-        % Get the width and height of the CCD image (pixel integer)
-        img_x = 1:1:width(img.fit);
-        img_y = 1:1:height(img.fit);
-
-        % Pixel integer shifted so zero in center (integer)
-        img_x_centered = img_x-length(img_x)/2; 
-        img_y_centered = img_y-length(img_y)/2;
-
-        % Convert integer scales into mm scales using calibrated value
-        img_x_mm = img_x_centered / pix_per_mm;
-        img_y_mm = img_y_centered / pix_per_mm;
     
         % Plot the image and RoIs
         figure;
         ax1 = gca;
 
         % Plot the CCD image with the converted x and y values
-        imagesc(img_x_mm,img_y_mm,img.fit);
+        imagesc(img.fit);
         
         hold on;
 
@@ -1623,10 +1695,21 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
           
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(squeeze(x_ellipse(z,:)),squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
+          end
 
-        for z = 1:numROIs
-          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z})
+          % Plot background box
           plot([Region_x1 Region_x1 Region_x2 Region_x2 Region_x1], [Region_y1 Region_y2 Region_y2 Region_y1 Region_y1],'color','m','linewidth',1)
+            
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax1.FontSize = 18;
         end
 
         text(200, 3886, [['Image Number: ',num2str(image_selector)],...
@@ -1692,11 +1775,21 @@ switch experiment
       linewidth = {.5, .1, .1, .1, .1, .1};
       linestyle = {'-',':',':',':',':',':'};
       
+      if darkimages == 1
         for z = 1:numROIs
           plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
                  ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
                  'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
         end
+
+      else
+        plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+             ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+             ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+             ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+             ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+        ax1.FontSize = 18;
+      end
 
       title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
       axis square;
@@ -1870,12 +1963,23 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
         
-        for z = 1:numROIs
-          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z}...
-               ,'LineWidth',linewidth{z});
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
+                 ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
+                 'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
+          end
+            
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax5.FontSize = 18;
         end
 
-        text((200/pix_per_mm) - pixel_x_shift, (3886/pix_per_mm) - pixel_y_shift, [' \newline',EXPOSURETIME,'\newline',ANGLEtheta_s,...
+        text((200 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',EXPOSURETIME,'\newline',ANGLEtheta_s,...
             '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE,...
             '\newline',SPATIALFREQ,'\newline',PSD,'\newline',SIGMA],...
             'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1])
@@ -2187,15 +2291,19 @@ switch experiment
       % Grabs the exposure time saved in CamSetting.txt for the corresponding image
       
     
-      % Read exposure times for the dark images. Determines if we are getting the
-      % background image using the exposure time of each image
-      if use_background_exp==1                                         
-        % Rewrites filename for the case where we are selecting dark image files
-        % based on their exposure time
-        image_name = [num2str(exposure_time*100),'.csv'];
-        darkfnm = readtable([darkimagedir,num2str(pic_ID(n)),'.csv']);
+       % Condition runs if we are using dark images
+      if darkimages==1
+        % Read exposure times for the dark images. Determines if we are getting the
+        % background image using the exposure time of each image
+        if use_background_exp==1                                         
+          % Rewrites filename for the case where we are selecting dark image files
+          % based on their exposure time
+          image_name = [num2str(exposure_time*100),'.csv'];
+          darkfnm = readtable([darkimagedir,num2str(pic_ID(n)),'.csv']);
+        else
+          darkfnm = readtable([darkimagedir,num2str(pic_ID(n)),'.csv']);
+        end
       else
-        darkfnm = readtable([darkimagedir,num2str(pic_ID(n)),'.csv']);
       end
     
     
@@ -2238,15 +2346,32 @@ switch experiment
         end
     
       end
-   
+    
+    % If not using dark images ROI for measuring background
+    if darkimages == 0
+        bxcenter = 620;
+        bycenter = 225;
+        bwidth = 50;
+        bheight = 50;
+    % Corners of background ROI
+        bx1 = round(bxcenter - bwidth/2);
+        bx2 = round(bxcenter + bwidth/2);
+        by1 = round(bycenter - bheight/2);
+        by2 = round(bycenter + bheight/2);
+    end
     
     %% CRYO ROI MASK
     %---------------------------------------------------------------------------------------------------
     % This section makes the ROI mask for each image
     %---------------------------------------------------------------------------------------------------
 
-      % Subtracted Image
-      image = table2array(image_name - darkfnm);
+      if darkimages==1
+
+        % Subtracted Image
+        image = table2array(image_name - darkfnm);
+      else
+        image = table2array(image_name);
+      end
       
       for z = 1:numROIs
         % This section of code creates an overlay of the RoI on top
@@ -2285,8 +2410,22 @@ switch experiment
       % This statement decides how background will be subtracted. From
       % background images or from defining a background ROI.
       
-      for z = 1:numROIs
-         % moved above for memory saving   
+      if darkimages == 1
+        for z = 1:numROIs
+           % moved above for memory saving   
+        end
+      else
+        % Crop background image size
+        bRoI.fit = image(by1:by2,bx1:bx2,:);
+
+        % mean of background
+        mubRoI = mean(mean(bRoI.fit));        
+
+        % subtract mean of background from ROI
+        RoIsub.fit = RoI_mask(1,n).fit - mubRoI;
+
+        % Sum over ROI and correct (Total intensity in RoI with background nois subtracted :: Single value) for exposure time
+        ARBccd = sum(sum(RoIsub.fit)) ./ (exposure_time);                          
       end
       
       % Calculate BRDF,PSD,and Sigma for each image
@@ -2402,9 +2541,19 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
         
-        for z = 1:numROIs
-              plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z} ...
-                   ,'LineWidth',linewidth{z});
+        if darkimages == 1
+          for z = 1:numROIs
+                plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z} ...
+                     ,'LineWidth',linewidth{z});
+          end
+
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax1.FontSize = 18;
         end
 
         text(200, 700, [' \newline',['Exposure Time = ',num2str(exposure_time),' s']...
@@ -2435,11 +2584,19 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
           
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),...
+                 'LineStyle',linestyle{z},'color',boxcolors{z},...
+                 'LineWidth',linewidth{z});
+          end
 
-        for z = 1:numROIs
-          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),...
-               'LineStyle',linestyle{z},'color',boxcolors{z},...
-               'LineWidth',linewidth{z});
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+              ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+              ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+              ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+              ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
         end
   
         colormap('gray');
@@ -2555,10 +2712,19 @@ switch experiment
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
         
-        for z = 1:numROIs
-              plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),...
-                   'LineStyle',linestyle{z},'color',boxcolors{z},...
-                   'LineWidth',linewidth{z});
+        if darkimages == 1
+          for z = 1:numROIs
+                plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),...
+                     'LineStyle',linestyle{z},'color',boxcolors{z},...
+                     'LineWidth',linewidth{z});
+          end
+
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)],...
+                [ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)],...
+                'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-',...
+                [LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1],...
+                [LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
         end
 
         text((imageWidth-(0.05*imageWidth)), (0.05*imageHeight), ['\newline',ELAPSE_TIME,...
