@@ -1271,9 +1271,9 @@ switch experiment
       % Plots of incident power over scattering angle
       f4 = figure('Position',[0 0 1000 1000],'Visible','off');
       hold on;
-      plot(pic_ID, power_corrected,'s-','MarkerFaceColor','b');
+      plot(pic_ID, image_power,'s-','MarkerFaceColor','b');
       hold on;
-      plot(pic_ID, power_corrected,'s-','MarkerFaceColor','r');
+      plot(pic_ID, image_power,'s-','MarkerFaceColor','r');
       xlabel('Time', 'FontSize', 20);
       title('Incident power over time','FontSize',30,'FontName','Times New Roman','Interpreter','none');
       ylabel('Power [W]', 'FontSize', 20);
@@ -1330,7 +1330,7 @@ switch experiment
       % Make a graph of power monitor measurements alongside heater power percentage to check correlation
       f5_c = figure('Visible','off');
       yyaxis right
-      plot(image_duration_time, power_corrected, 's-','MarkerFaceColor','r')
+      plot(image_duration_time, image_power, 's-','MarkerFaceColor','r')
       ylabel('Power [W]', 'FontSize', 20)
       yyaxis left
       plot(duration_time, heater_power, 'b-')
@@ -1353,7 +1353,7 @@ switch experiment
     ylabel('BRDF [1/str]','FontSize',18)
     set(gca,'FontSize',12)
     yyaxis right
-    plot(image_duration_time,power_corrected,'r-')
+    plot(image_duration_time,image_power,'r-')
     ylabel('Laser Power [W]','FontSize',18)
     set(gca,'FontSize',12)
     xlabel('Time (hh:mm:ss)','FontSize',14)
