@@ -54,9 +54,8 @@ Just set the variable folder.data_path to either mock_AAS_data_path or mock_ARS_
 %-----------------------------------------------------------------------------------------------------------------------
 
 % Mock data files for debugging
-mock_AAS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/MiscFiles/Mock-AAS-Data/PL-13649-Mock-AAS-Data';
-mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/MiscFiles/Mock-ARS-Data/PL-13649-Mock-ARS-Data';
-
+mock_AAS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/AAS/Mock-AAS-Data/PL-13649-Mock-AAS-Data';
+mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/Mock-ARS-Data/PL-13649-Mock-ARS-Data';
 
 %% FILE AND EXPERIMENT TYPE
 
@@ -86,7 +85,7 @@ DEBUG = 1;
 
 % If locateROI = 1, script will only display 'image_Selector' and let you adjust ROI
 % If locateROI = 0, script runs normally
-locate_ROI = 1;
+locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
 total_images = 3;
