@@ -1293,21 +1293,20 @@ switch experiment
 
     f5_a = figure('Visible','off');
     yyaxis left
-    plot(duration_time,temperature,'b-')
+    plot(duration_time,temperature)
     hold on
-    % ylim([0 max(temperature)+50]) ;  %edit limit depending on max temp, 0 to 500 for 450C exp
-    ylabel('Temperature [{\circ}C]','FontSize',14)
-    set(gca,'FontSize',14)%20
+
+    ylabel('Oven Temperature [{\circ}C]','FontSize',14)
+    set(gca,'FontSize',14)
     
     yyaxis right
-    plot(duration_time,heater_power,'r-')
-    ylabel('Output Power [%]','FontSize',14)%18
-    % ylim([0 max(power)+10]) ;
-    set(gca,'FontSize',14)%20
+    plot(duration_time,heater_power)
+    ylabel('Heater Power [%]','FontSize',14)
+    set(gca,'FontSize',14)
     
     xlabel('Time (hr)','FontSize',18)
-    % legend('Temperature [{\circ}C]','Output Power [%]','FontSize',14)
-    title(['Temperature-Power Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)%22
+
+    title(['Temperature-Power Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
     grid on
     grid minor
     saveas(f5_a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
@@ -2893,10 +2892,12 @@ end
 switch experiment
   case 'AAS'
     % Custom MakeTable() function to make and save table. Enter cell of variable_names, cell of variables, and string of save path
-    Maketable({},{},[folder.analysisPath,slash,'BRDF_Data.txt']);
+    MakeTable({'Image_Time','Image_BRDF','Image_Temperature','Full_Time','Heater_Power'}, ...
+              {image_duration_time,BRDFyint,image_temp,duration_time,heater_power},[folder.analysisPath,slash,'BRDF_Data.txt']);
   case 'ARS'
     % Custom MakeTable() function to make and save table. Enter cell of variable_names, cell of variables, and string of save path
-    MakeTable({'Angle','BRDF','Temperature','TIS'},{theta_s,BRDFyint,image_temp,RTIS_cumulative},[folder.analysisPath,slash,'BRDF_Data.txt']);
+    MakeTable({'Angle','BRDF','Temperature','TIS'}, ...
+              {theta_s,BRDFyint,image_temp,RTIS_cumulative},[folder.analysisPath,slash,'BRDF_Data.txt']);
     
   case 'CRYO'
     % Custom MakeTable() function to make and save table. Enter cell of variable_names, cell of variables, and string of save path
