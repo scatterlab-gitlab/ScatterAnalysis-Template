@@ -88,7 +88,7 @@ DEBUG = 1;
 locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
-total_images = 3;
+total_images = 10;
 
 % Assign a value for n which will be the image number you want to evaluate
 % before the entire script begins. This is good for checking the distance
@@ -671,8 +671,11 @@ switch experiment
     for n=endloop
       
       s = s + 1;
+
+      display(newline);
+
       clc;
-      % Image status and timing
+      Image status and timing
       disp([num2str(s),' out of ', num2str(total_images)])
       disp(toc)
       tic
@@ -1020,149 +1023,151 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
 % This section plots the image, histogram, and BRDF subplots
 %---------------------------------------------------------------------------------------------------
-
-      % Figure with image, BRDF plot, Histogram, PSD, and info.
-      %---------------------------------------------------------------------------------------------------
-    
-      f1 = figure('Position',[1 1000 1200 1000],'Visible','off');
-      set(0,'defaulttextfontname','Times New Roman')
-      set(0,'defaultaxesfontname','Times New Roman')
-        
-      
-      % Plot the CCD image with its ROIs
-      %---------------------------------------------------------------------------------------------------
-      ax1 = nexttile([2,2]);
-
-      % Get the width and height of the CCD image (pixel integer)
-      img_x = 1:1:width(img.fit);
-      img_y = 1:1:height(img.fit);
-
-      % Pixel integer shifted so zero in center (integer)
-      img_x_centered = img_x-length(img_x)/2;
-      img_y_centered = img_y-length(img_y)/2;
-
-      % Convert integer scales into mm scales using calibrated value
-      img_x_mm = img_x_centered / pix_per_mm;
-      img_y_mm = img_y_centered / pix_per_mm;
-
-      % Pixel shift value
-      pixel_x_shift = (length(img_x)/2) / pix_per_mm;
-      pixel_y_shift = (length(img_y)/2) / pix_per_mm;
-      
-      imagesc(img_x_mm,img_y_mm,img.fit);
-      
-      hold on;
-      ax1.CLim = [clim_Min, clim_Max];
-      colormap('gray');
-      boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
-      
-      % sized by the number of ROIs currently 6   
-      linewidth = {.5, .1, .1, .1, .1, .1};
-      linestyle = {'-',':',':',':',':',':'};
-      
-      if darkimages == 1
-        for z = 1:numROIs
-          plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},...
-               'LineWidth',linewidth{z})
-        end
-
-      else
-        plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
-             ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
-             ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
-             ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
-             ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
-        ax1.FontSize = 18;
-      end
-
-      title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
-      axis square;
-      axis off;
-
-      % Plot histogram
-      ax2 = nexttile([2,2]);
-
-      % take matrix RoI(n).fit and turn into a giant column vector
-      imagevector = reshape(RoI_mask(1).fit,numel(RoI_mask(1).fit),1);
-         
-      % Make the bin center values where 65600 is calculated how????????????
-      bincentervalue = 0:100:65600;
-      
-      % Make the histogram
-      h = histogram(imagevector,0:100:65700);
-      
-      % Extract the counts from the histogram
-      numinbin = h.Values;
-      % make a bar plot of log10 of the number for each bin and gets handle
-      bh = bar(bincentervalue,numinbin);
-      
-      hold on;
-      % some made up power law trend to be understood later
-      histtheory = 3e8*bincentervalue.^(-2);
-      
-      plot(bincentervalue,histtheory,'k--');
-      % x-axis limit
-      ax2.XLim = [0 65600];
-      % y-axis limit
-      ax2.YLim = [min(bincentervalue) max(bincentervalue)];
-      ax2.FontSize = 18;
-      ax2.XScale = 'log';
-      ax2.YScale = 'log';
-      bh.FaceColor = [1 0 0];
-      bh.EdgeColor = [1 0 0];
-      ylabel(ax2,'# of pixels','FontName','Times New Roman');
-      xlabel(ax2,'Pixel value [counts]','FontName','Times New Roman');
-      title('Pixel values in region of interest','FontSize',20,'FontName','Times New Roman')
-      
-      
-      % Create text information to add to plot
-      ELAPSE_TIME = ['Elapsed Time = ',char(image_duration_time(n))];
-      POWERINC = ['Incident power = ',num2str(sprintf('%.2f',power_corrected(n)*1000)), ' mW'];
-      POWERSCAT = ['Scattered power = ',num2str(sprintf('%.2s',ARBccd(1).*muFcal.*1000)),' {\mu}W'];
-      BRDFVALUE = ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'];
-      TEMP = ['Temperature = ', num2str(round(image_temp(n),1)), '{\circ}C' ];
-      
-      % Add text information to plot
-      text(65600, max(bincentervalue), [' \newline',ELAPSE_TIME,...
-          '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE],...
-          'VerticalAlignment','top','HorizontalAlignment','right','FontSize',12)
-
-      % Plot BRDF vs Time and Temperature vs Time on 3-pane subplot
-      ax3 = nexttile([2,4]);
-      yyaxis left
-
-      plot(image_duration_time(1:n),BRDFyint(1:n),'LineStyle','-');
-      set(ax3, 'YScale', 'log');
-      hold on;
-      
-      ylabel('BRDF [1/str]','FontSize',18,'FontName','Times New Roman');
-      xlabel('Time Elapsed','FontSize',18,'FontName','Times New Roman');
-      
-      yyaxis right
-      plot(image_duration_time(1:n),image_temp(1:n));
-
-      ylabel('Temperature [{\circ}C]','FontSize',18);
-      grid on
-      grid minor
-      set(ax3, 'FontSize',16);            
-      title(['Normalized Scatter and Temperature Profile ', strrep(folder.sample_name,'_','\_')] , 'FontSize',24)
-      
-    
-      % Save 3-pane subplot to fig only if last image
-      if n == total_images
-          saveas(f1,[folder.analysisPath,'FIG',slash,num2str(pic_ID(n)),'.fig']);
-      end
-
-      figure_size = get(gcf, 'position');
-      set(f1,'PaperPosition',figure_size/100, 'visible', 'off');
-
       if print_images == 1
+        % Figure with image, BRDF plot, Histogram, PSD, and info.
+        %---------------------------------------------------------------------------------------------------
+      
+        f1 = figure('Position',[1 1000 1200 1000],'Visible','off');
+        set(0,'defaulttextfontname','Times New Roman')
+        set(0,'defaultaxesfontname','Times New Roman')
+          
+        
+        % Plot the CCD image with its ROIs
+        %---------------------------------------------------------------------------------------------------
+        ax1 = nexttile([2,2]);
+  
+  
+        % Get the width and height of the CCD image (pixel integer)
+        img_x = 1:1:width(img.fit);
+        img_y = 1:1:height(img.fit);
+  
+        % Pixel integer shifted so zero in center (integer)
+        img_x_centered = img_x-length(img_x)/2;
+        img_y_centered = img_y-length(img_y)/2;
+  
+        % Convert integer scales into mm scales using calibrated value
+        img_x_mm = img_x_centered / pix_per_mm;
+        img_y_mm = img_y_centered / pix_per_mm;
+  
+        % Pixel shift value
+        pixel_x_shift = (length(img_x)/2) / pix_per_mm;
+        pixel_y_shift = (length(img_y)/2) / pix_per_mm;
+        
+        imagesc(img_x_mm,img_y_mm,img.fit);
+        
+        hold on;
+        ax1.CLim = [clim_Min, clim_Max];
+        colormap('gray');
+        boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
+        
+        % sized by the number of ROIs currently 6   
+        linewidth = {.5, .1, .1, .1, .1, .1};
+        linestyle = {'-',':',':',':',':',':'};
+        
+        
+        if darkimages == 1
+          for z = 1:numROIs
+            plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},...
+                 'LineWidth',linewidth{z})
+          end
+  
+        else
+          plot([xleft(z) xleft(z) xright(z) xright(z) xleft(z)]...
+               ,[ybottom(z) ytop(z) ytop(z) ybottom(z) ybottom(z)]...
+               ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
+               ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
+               ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
+          ax1.FontSize = 18;
+        end
+  
+  
+        title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
+        axis square;
+        axis off;
+  
+        % Plot histogram
+        ax2 = nexttile([2,2]);
+  
+        % take matrix RoI(n).fit and turn into a giant column vector
+        imagevector = reshape(RoI_mask(1).fit,numel(RoI_mask(1).fit),1);
+           
+        % Make the bin center values where 65600 is calculated how????????????
+        bincentervalue = 0:100:65600;
+        
+        % Make the histogram
+        h = histogram(imagevector,0:100:65700);
+        
+        % Extract the counts from the histogram
+        numinbin = h.Values;
+        % make a bar plot of log10 of the number for each bin and gets handle
+        bh = bar(bincentervalue,numinbin);
+        
+        hold on;
+        % some made up power law trend to be understood later
+        histtheory = 3e8*bincentervalue.^(-2);
+        
+        plot(bincentervalue,histtheory,'k--');
+        % x-axis limit
+        ax2.XLim = [0 65600];
+        % y-axis limit
+        ax2.YLim = [min(bincentervalue) max(bincentervalue)];
+        ax2.FontSize = 18;
+        ax2.XScale = 'log';
+        ax2.YScale = 'log';
+        bh.FaceColor = [1 0 0];
+        bh.EdgeColor = [1 0 0];
+        ylabel(ax2,'# of pixels','FontName','Times New Roman');
+        xlabel(ax2,'Pixel value [counts]','FontName','Times New Roman');
+        title('Pixel values in region of interest','FontSize',20,'FontName','Times New Roman')
+        
+        
+        % Create text information to add to plot
+        ELAPSE_TIME = ['Elapsed Time = ',char(image_duration_time(n))];
+        POWERINC = ['Incident power = ',num2str(sprintf('%.2f',power_corrected(n)*1000)), ' mW'];
+        POWERSCAT = ['Scattered power = ',num2str(sprintf('%.2s',ARBccd(1).*muFcal.*1000)),' {\mu}W'];
+        BRDFVALUE = ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'];
+        TEMP = ['Temperature = ', num2str(round(image_temp(n),1)), '{\circ}C' ];
+        
+        % Add text information to plot
+        text(65600, max(bincentervalue), [' \newline',ELAPSE_TIME,...
+            '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE],...
+            'VerticalAlignment','top','HorizontalAlignment','right','FontSize',12)
+  
+        % Plot BRDF vs Time and Temperature vs Time on 3-pane subplot
+        ax3 = nexttile([2,4]);
+        yyaxis left
+  
+        plot(image_duration_time(1:n),BRDFyint(1:n),'LineStyle','-');
+        set(ax3, 'YScale', 'log');
+        hold on;
+        
+        ylabel('BRDF [1/str]','FontSize',18,'FontName','Times New Roman');
+        xlabel('Time Elapsed','FontSize',18,'FontName','Times New Roman');
+        
+        yyaxis right
+        plot(image_duration_time(1:n),image_temp(1:n));
+  
+        ylabel('Temperature [{\circ}C]','FontSize',18);
+        grid on
+        grid minor
+        set(ax3, 'FontSize',16);            
+        title(['Normalized Scatter and Temperature Profile ', strrep(folder.sample_name,'_','\_')] , 'FontSize',24)
+      
+        % Save 3-pane subplot to fig only if last image
+        if n == total_images
+            saveas(f1,[folder.analysisPath,'FIG',slash,num2str(pic_ID(n)),'.fig']);
+        end
+  
+        figure_size = get(gcf, 'position');
+        set(f1,'PaperPosition',figure_size/100, 'visible', 'off');
+      
+        tic
         % Save 3-pane subplot frame as png for movie making
         print(f1,[folder.analysisPath,'PNG',slash,num2str(pic_ID(n)),'.png'], '-dpng','-r300');
-      end
-      delete(f1);
-                
-      
+        
+        delete(f1);
+
+      end   
 
 %% FIGURE 2: CCD IMAGES
 %---------------------------------------------------------------------------------------------------
@@ -1231,9 +1236,11 @@ switch experiment
         
         % Overwrites the values of each element to null
         img.fit = 0;
+
       end
     end
     
+
 %% FIGURE 3: BRDF VS TTIME
 %---------------------------------------------------------------------------------------------------
 % Plot and save BRDF vs theta_s and BRDFlimit
