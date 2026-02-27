@@ -60,10 +60,10 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 %% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
-folder.data_path = mock_AAS_data_path;
+folder.data_path = mock_ARS_data_path;
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'AAS';
+experiment = 'ARS';
 
 % Note to save as a text file about analysis specifics or changes
 note_text = 'Trying to add properly scaled axies to the CCD images';
@@ -88,7 +88,7 @@ DEBUG = 1;
 locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
-total_images = 10;
+total_images = 5;
 
 % Assign a value for n which will be the image number you want to evaluate
 % before the entire script begins. This is good for checking the distance
@@ -641,12 +641,12 @@ S_iso = zeros(total_images,1);
 f_quad_sum = zeros(total_images,1);
 minLIM = zeros(1,total_images);
 
-Omega_int_ring = zeros(length(theta_s));
-Omega_ext_ring = zeros(length(theta_s));
-Omega_ring = zeros(length(theta_s));
-meanBRDFyint = zeros(length(theta_s));
-intscat_a = zeros(length(theta_s));
-theta_diff = zeros(length(theta_s));
+Omega_int_ring = zeros(1,length(theta_s));
+Omega_ext_ring = zeros(1,length(theta_s));
+Omega_ring = zeros(1,length(theta_s));
+meanBRDFyint = zeros(1,length(theta_s));
+intscat_a = zeros(1,length(theta_s));
+theta_diff = zeros(1,length(theta_s));
 
 
 s = 0;
@@ -2052,7 +2052,7 @@ switch experiment
     RTIS = sum(intscat_a);
     RTIS_cumulative = cumsum(intscat_a);
     
-    TIS_diff = zeros(length(theta_diff)-1);
+    TIS_diff = zeros(1,length(theta_diff)-1);
     TIS_deriv = length(theta_diff)-1;
 
     for k = 1:length(theta_diff)-1
@@ -2168,7 +2168,7 @@ switch experiment
       hold(ARS_ax,'on');
       hold on;
       
-      h = plot(theta_s(1:end-1), RTIS_cumulative);
+      h = plot(theta_s, RTIS_cumulative);
       
       set(h,'LineStyle','none','Marker','square',...
           'MarkerSize',7,'MarkerFaceColor',[51 153 255]./255);
@@ -2193,14 +2193,19 @@ switch experiment
 
       % Plots value of TIS_derivative as a function of theta_s
     if print_images == 1
+
       f6 = figure('Position', [1 1000 1000 1000],'Visible','off');
-      hold on;
+      ax6 = gca;
       
-      h = plot(theta_s(1:end-2), TIS_deriv,'Visible','off');
-      
-      set(h,'LineStyle','none','Marker','square',...
-          'MarkerSize',7,'MarkerFaceColor',[51 255 249]./255);
-      
+      h = plot(theta_s(1:end-1), TIS_deriv);
+
+      h.LineStyle = 'none';
+      h.Marker = 'square';
+      h.MarkerSize = 7;
+      h.MarkerFaceColor = [0.2 1 0.97];
+
+      ax6.YLabel.String = 'Derivative dTIS/d\theta_s [ppm/deg.]';
+
       ylabel('Derivative dTIS/d\theta_s [ppm/deg.]','FontSize',30,'FontName','Times New Roman');
       xlabel('\theta_s {[deg.]}','FontSize',30,'FontName','Times New Roman');
       legend(h,'dTIS/d\theta_s');
