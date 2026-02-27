@@ -229,6 +229,7 @@ set(groot,'DefaultAxesFontName','Times New Roman');
 set(groot,'DefaultAxesFontSize',20);
 set(groot,'DefaultTextFontName', 'Times New Roman');
 set(groot,'DefaultTextFontSize',20);
+set(groot,'DefaultLineLineWidth',1);
 
 set(groot,'DefaultAxesColorOrder', ...
     [0.10 0.76 0.82;...
@@ -1279,66 +1280,70 @@ switch experiment
 %% FIGURE 4: INCIDENT POWER
 
     if print_images == 1
+
       % Plots of incident power over scattering angle
       f4 = figure('Position',[0 0 1000 1000],'Visible','off');
-      hold on;
-      plot(pic_ID, image_power,'s-','MarkerFaceColor','b');
-      hold on;
-      plot(pic_ID, image_power,'s-','MarkerFaceColor','r');
-      xlabel('Time', 'FontSize', 20);
-      title('Incident power over time','FontSize',30,'FontName','Times New Roman','Interpreter','none');
-      ylabel('Power [W]', 'FontSize', 20);
-      legend('Incident Power (measured twice, before and after)', 'Calibrated Monitor Power');
-      grid('on');
-      box('on');
-      orient landscape;
+      ax4 = gca;
+
+      p4 = plot(image_duration_time, image_power);
+
+      p4.Marker = 's';
+
+      ax4.Title = 'Incident Power Vs Time';
+      ax4.XLabel = 'Time';
+      ax4.YLabel = 'Power [W]';
+      ax4.Box = 'on';
+      grid on;
+
+      legend('Incident Power', 'Calibrated Monitor Power');
       
       saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
       delete(f4);
+
     end
 
 %% FIGURE 5: HEATER POWER
     
+  if print_images == 1
+
     % Create Temperature/Power Graph from excel file
+    f5a = figure('Visible','off');
+    ax5 = gca;
 
-    f5_a = figure('Visible','off');
     yyaxis left
-    plot(duration_time,temperature)
-    hold on
 
-    ylabel('Oven Temperature [{\circ}C]','FontSize',14)
-    set(gca,'FontSize',14)
-    
+    plot(duration_time,temperature)
+
+    ax5.YLabel.String = 'Oven Temperature [{\circ}C]';
+
     yyaxis right
+
     plot(duration_time,heater_power)
-    ylabel('Heater Power [%]','FontSize',14)
-    set(gca,'FontSize',14)
-    
-    xlabel('Time (hr)','FontSize',18)
 
     title(['Temperature-Power Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
-    grid on
-    grid minor
-    saveas(f5_a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
-    saveas(f5_a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
-    delete(f5_a);
+    ylabel('Heater Power [%]','FontSize',14)
+    xlabel('Time (hr)','FontSize',18)
+
+    saveas(f5a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
+    saveas(f5a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
+    delete(f5a);
     
     % create a monitored power vs time plot that shows the entire power
     % monitor measurements, not just those from the interpolation
     
     if use_power_monitor==1
-      f5_b = figure('Visible','off');
+      f5b = figure('Visible','off');
       plot(date_time, power_corrected, 's-', 'MarkerFaceColor', 'r')
       xlabel('Elapsed Time', 'FontSize', 20);
       ylabel('Power [W]', 'FontSize', 20);
       title('Monitored Power Over Time','FontSize',30,'FontName','Times New Roman','Interpreter','none');
-      saveas(f5_b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-      saveas(f5_b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
-      delete(f5_b);
+      saveas(f5b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+      saveas(f5b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+      delete(f5b);
            
       % Make a graph of power monitor measurements alongside heater power percentage to check correlation
-      f5_c = figure('Visible','off');
+      f5c = figure('Visible','off');
       yyaxis right
       plot(image_duration_time, image_power, 's-','MarkerFaceColor','r')
       ylabel('Power [W]', 'FontSize', 20)
@@ -1348,10 +1353,12 @@ switch experiment
       legend('Calibrated Monitor Power', 'Heater Power')
       xlabel('Elapsed Time',  'FontSize', 20)
       title('Laser and Heater Power During Annealing Run', 'FontSize',20)
-      saveas(f5_c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-      saveas(f5_c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
-      delete(f5_c);
+      saveas(f5c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+      saveas(f5c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+      delete(f5c);
+
     end
+  end
 
 %% FIGURE 6: LASER POWER PROFILE
 
