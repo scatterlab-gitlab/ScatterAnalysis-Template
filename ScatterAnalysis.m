@@ -226,9 +226,9 @@ end
 colors = {[0 0 1] [0.81 0 0] [1 0.48 0] [0 0.75 0.2] [.87 .32 1]};
 
 set(groot,'DefaultAxesFontName','Times New Roman');
-set(groot,'DefaultAxesFontSize',13);
+set(groot,'DefaultAxesFontSize',20);
 set(groot,'DefaultTextFontName', 'Times New Roman');
-set(groot,'DefaultTextFontSize',13);
+set(groot,'DefaultTextFontSize',20);
 
 set(groot,'DefaultAxesColorOrder', ...
     [0.10 0.76 0.82;...
@@ -1354,12 +1354,12 @@ switch experiment
     % Laser Power Profile plots
     f6 = figure('Visible','off');
     yyaxis left
-    plot(image_duration_time,BRDFyint,'b-')
+    plot(image_duration_time,BRDFyint)
     hold on
     ylabel('BRDF [1/str]','FontSize',18)
     set(gca,'FontSize',12)
     yyaxis right
-    plot(image_duration_time,image_power,'r-')
+    plot(image_duration_time,image_power)
     ylabel('Laser Power [W]','FontSize',18)
     set(gca,'FontSize',12)
     xlabel('Time (hh:mm:ss)','FontSize',14)
@@ -2157,32 +2157,27 @@ switch experiment
       TIS_title = strcat('Cumulative TIS ', sample);
       
       f5 = figure('Visible','off','Position',[1 1000 1000 1000]);
-      ARS_ax = gca;
-  
-      set(ARS_ax,'YMinorTick','on','YMinorGrid','on',...
-          'Position',[0.13 0.148923319327731 0.775 0.729067111294278],...
-          'FontSize',30,...
-          'FontName','Times New Roman');
-      box(ARS_ax,'on');
-      grid(ARS_ax,'on');
-      hold(ARS_ax,'on');
-      hold on;
+      ax5 = gca;
       
       h = plot(theta_s, RTIS_cumulative);
+
+      ax5.YMinorGrid = 'on';
+      ax5.YMinorTick = 'on';
+      ax5.Box = 'on';
+      ax5.Title.String = TIS_title;
+      ax5.YLabel.String = 'TIS';
+      ax5.XLabel.String = '\theta_s {[deg.]}';
+
+      hold on;
       
-      set(h,'LineStyle','none','Marker','square',...
-          'MarkerSize',7,'MarkerFaceColor',[51 153 255]./255);
-      
-      ylabel('TIS','FontSize',30,'FontName','Times New Roman');
-      xlabel('\theta_s {[deg.]}','FontSize',30,'FontName','Times New Roman');
+      h.LineStyle = 'none';
+      h.Marker = 'square';
+      h.MarkerSize = 7;
+      h.MarkerFaceColor = [0.2 0.6 1];
+
       legend(TIS_title);
-      title(TIS_title,'FontSize',36,'FontName','Times New Roman','Interpreter','none');
-      grid('on');
-      box('on');
       
-      text(50,max(RTIS_cumulative),num2str(RTIS,3),'FontSize',20,...
-          'Color',[51 153 255]./255);
-      orient landscape;
+      text(50,max(RTIS_cumulative),num2str(RTIS,3),'FontSize',20,'Color',[51 153 255]./255);
       
       saveas(f5, [folder.analysisPath,folder.sample_name,slash,'TIS_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f5, [folder.analysisPath,folder.sample_name,slash,'TIS_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
@@ -2204,19 +2199,15 @@ switch experiment
       h.MarkerSize = 7;
       h.MarkerFaceColor = [0.2 1 0.97];
 
+      ax6.Title.String = 'Derivative of TIS';
       ax6.YLabel.String = 'Derivative dTIS/d\theta_s [ppm/deg.]';
-
-      ylabel('Derivative dTIS/d\theta_s [ppm/deg.]','FontSize',30,'FontName','Times New Roman');
-      xlabel('\theta_s {[deg.]}','FontSize',30,'FontName','Times New Roman');
-      legend(h,'dTIS/d\theta_s');
-      title('Derivative of TIS','FontSize',36,'FontName','Times New Roman','Interpreter','none');
-      grid('on');
-      box('on');
-      orient landscape;
+      ax6.XLabel.String = 'dTIS/d\theta_s';
+      ax6.Box = 'on';
       
       saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Derivative_TIS_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Derivative_TIS_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
       delete(f6);
+
     end
 
 %% FIGURE 7: INCIDENT POWER
