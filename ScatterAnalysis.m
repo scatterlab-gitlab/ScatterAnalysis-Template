@@ -1247,29 +1247,33 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
     
     if print_images == 1
+
       f3 = figure('Visible','off');
       ax3 = gca;
      
-      semilogy(image_duration_time,minLIM','v-','DisplayName','BRDF limit');
+      p3a = semilogy(image_duration_time,minLIM');
+
+      p3a.Marker = 'v';
+
       hold on;
 
-      semilogy(image_duration_time,BRDFyint,'s','MarkerFaceColor','g','LineStyle','none','Color','g','DisplayName',sample);
-      xlabel('Elapsed Time (hh:mm:ss)');
-      
-      ylabel('BRDF [1/str]');
-      BRDF_title = ['BRDF ',sample];
-      title(BRDF_title);
-  
-  %---------------------------------------------------------------------------------------------------
-  % Figure 3 Properties
-  %---------------------------------------------------------------------------------------------------
-      ax3.FontName = 'Times New Roman';
-      ax3.FontSize = 30;
+      p3b = semilogy(image_duration_time,BRDFyint);
+
+      p3b.LineStyle = 'none';
+      p3b.Color = 'g';
+      p3b.Marker = 's';
+      p3b.MarkerFaceColor = 'g';
+
+      ax3.XLabel.String = 'Elapsed Time (hh:mm:ss)';
+      ax3.YLabel = 'BRDF [1/str]';
+      ax3.Title = ['BRDF ',sample];
+
       f3.Position = [0,0,1618,1000];
   
       saveas(f3,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f3,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
       delete(f3);
+
     end
 
 %% FIGURE 4: INCIDENT POWER
@@ -2068,8 +2072,7 @@ switch experiment
     
     if print_images == 1
 
-      % f3 = figure('Visible','off');
-      f3 = figure();
+      f3 = figure('Visible','off');
       ax3 = gca;
       
       f3_log = semilogy(theta_s,minLIM,'v-','DisplayName','BRDF limit');
@@ -2086,7 +2089,7 @@ switch experiment
 
       ax3.XLabel.String = '\theta { [degs.]}';
       ax3.YLabel.String = 'BRDF [1/str]';
-      ax3.Title.Stringtitle = ['BRDF ',sample];
+      ax3.Title.String = ['BRDF ',sample];
 
       f3.Position = [0,0,1618,1000];
 
