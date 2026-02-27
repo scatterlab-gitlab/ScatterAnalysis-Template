@@ -187,7 +187,7 @@ end
 %---------------------------------------------------------------------------------------------------
 
 % Incident power [W] average before and after power measurement
-incident_power = 0.0079;
+incident_power = 7.9e-3;
 
 % If using Neutral Density Filter (like for Spectralon) filter = 1/273, otherwise filter = 1)
 filter = 1;
@@ -2067,30 +2067,35 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
     
     if print_images == 1
-      f3 = figure('Visible','off');
+
+      % f3 = figure('Visible','off');
+      f3 = figure();
       ax3 = gca;
       
-      semilogy(theta_s,minLIM,'v-','DisplayName','BRDF limit');
+      f3_log = semilogy(theta_s,minLIM,'v-','DisplayName','BRDF limit');
+
       hold on;
       grid on;
       
-      errorbar(theta_s,BRDFyint,uncert_BRDFyint,'s','MarkerFaceColor','g','LineStyle','none','Color', 'g', 'DisplayName', sample);
-      xlabel('\theta { [degs.]}');
-  
-      ylabel('BRDF [1/str]');
-      BRDF_title = ['BRDF ',sample];
-      title(BRDF_title);
-  
-  %---------------------------------------------------------------------------------------------------
-  % Figure 3 Properties
-  %---------------------------------------------------------------------------------------------------
-      ax3.FontName = 'Times New Roman';
-      ax3.FontSize = 30;
+      f3_error_bar = errorbar(theta_s,BRDFyint,uncert_BRDFyint);
+
+      f3_error_bar.Color = 'g';
+      f3_error_bar.Marker = 's';
+      f3_error_bar.MarkerFaceColor = 'g';
+      f3_error_bar.LineStyle = 'none';
+
+      ax3.XLabel.String = '\theta { [degs.]}';
+      ax3.YLabel.String = 'BRDF [1/str]';
+      ax3.Title.Stringtitle = ['BRDF ',sample];
+
       f3.Position = [0,0,1618,1000];
+
+      
   
       saveas(f3,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f3,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
       delete(f3);
+
     end
     
 %% FIGURE 4: POWER SPECTRAL DENSITY PLOT
@@ -2098,40 +2103,37 @@ switch experiment
 % Plot and save PSD and Sigma Plots as .fig, .png
 %---------------------------------------------------------------------------------------------------
     if print_images == 1
+
       f4 = figure('Visible','off');
-      ax_PSD = gca;
+      ax4 = gca;
   
       yyaxis left
       plot_PSD = loglog(f_quad_sum, PSD_fx_fy);
   
-      ax_PSD.YLabel.String = 'Power Spectral Density [nm^4]';
-      ax_PSD.XLabel.String = 'spatial frequency [1/nm]';
+      ax4.YLabel.String = 'Power Spectral Density [nm^4]';
+      ax4.XLabel.String = 'spatial frequency [1/nm]';
   
-      ax_PSD.Box = 'on';
-      ax_PSD.YGrid = 'on';
-      ax_PSD.YMinorGrid = 'on';
-      ax_PSD.YMinorTick = 'off';
-      ax_PSD.XGrid = 'off';
-      ax_PSD.XMinorGrid = 'on';
-      ax_PSD.YTickMode = 'auto';
-      ax_PSD.FontName = 'Times New Roman';
-      ax_PSD.FontSize = 20;
-      ax_PSD.YLim = [min(PSD_fx_fy) max(PSD_fx_fy)];
-      ax_PSD.YColor = [0 0 0.8];    
+      ax4.Box = 'on';
+      ax4.YGrid = 'on';
+      ax4.YMinorGrid = 'on';
+      ax4.YMinorTick = 'off';
+      ax4.XGrid = 'off';
+      ax4.XMinorGrid = 'on';
+      ax4.YTickMode = 'auto';
+      ax4.YLim = [min(PSD_fx_fy) max(PSD_fx_fy)];
+      ax4.YColor = [0 0 0.8];    
   
       yyaxis right
       plot_sigma = loglog(f_quad_sum(1:end-1), sigma_cumulative);
   
-      ax_PSD.YLabel.String = '\sigma [nm]';
+      ax4.YLabel.String = '\sigma [nm]';
   
-      ax_PSD.YGrid = 'on';
-      ax_PSD.YMinorGrid = 'off';
-      ax_PSD.YMinorTick = 'off';
-      ax_PSD.YTickMode = 'auto';
-      ax_PSD.FontName = 'Times New Roman';
-      ax_PSD.FontSize = 20;
-      ax_PSD.XLim = [min(f_quad_sum) max(f_quad_sum)];
-      ax_PSD.YColor = [1 0.7 0];
+      ax4.YGrid = 'on';
+      ax4.YMinorGrid = 'off';
+      ax4.YMinorTick = 'off';
+      ax4.YTickMode = 'auto';
+      ax4.XLim = [min(f_quad_sum) max(f_quad_sum)];
+      ax4.YColor = [1 0.7 0];
   
       plot_PSD.LineStyle = 'none';
       plot_PSD.Marker = 'square';
@@ -2144,11 +2146,13 @@ switch experiment
       plot_sigma.MarkerFaceColor = [1 0.7 0];
   
       legend([plot_PSD,plot_sigma],'PSD','\sigma');
-      title('Power spectrum and surface (rms) roughness' ,'FontSize',30,'FontName','Times New Roman','Interpreter','none');
+
+      ax4.Title.String = 'Power spectrum and surface (rms) roughness';
   
       saveas(f4, [directories.apath,directories.spath,'/','PSD_and_Sigma',directories.tpath,'.fig']);
       saveas(f4, [directories.apath,directories.spath,'/','PSD_and_Sigma',directories.tpath,'.png']);
       delete(f4);
+
     end
     
 %% FIGURE 5: TIS PLOT
@@ -2216,48 +2220,57 @@ switch experiment
 
       % Plots of incident power over scattering angle
       f7 = figure('Position',[0 0 1000 1000],'Visible','off');
-      hold on;
+      ax7 = gca;
       
       plot(theta_s, power_corrected,'s-','MarkerFaceColor','b');
+
       hold on;
-      plot(theta_s, power_corrected,'s-','MarkerFaceColor','r');
-      xlabel('\theta_s [deg]', 'FontSize', 20);
-      title('Incident power over scattering angle','FontSize',30,'FontName','Times New Roman','Interpreter','none');
-      
-      ylabel('Power [W]', 'FontSize', 20);
-      legend('Incident Power (measured twice, before and after)', 'Calibrated Monitor Power');
-      grid('on');
-      box('on');
-      orient landscape;
+
+      plot(theta_s, incident_power, 's-','MarkerFaceColor','r');
+
+      ax7.Title.String = 'Incident power over scattering angle';
+      ax7.XLabel.String = '\theta_s [deg]';
+      ax7.YLabel.String = 'Power [W]';
+      ax7.Box = 'on';
+
+      legend('Calibrated Monitor Power', 'Incident Power (measured twice, before and after)');
       
       saveas(f7, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f7, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
       delete(f7);
+
     end
 
 %% FIGURE 8: LASER POWER PROFILE
 
     if print_images == 1
-        % Laser Power Profile plots
-        f8 = figure('Visible','off');
-        yyaxis left
-        plot(theta_s,BRDFyint,'b-')
-        hold on
-        ylabel('BRDF [1/str]','FontSize',18)
-        set(gca,'FontSize',20)
-        yyaxis right
-        plot(theta_s,power_corrected,'r-')
-        ylabel('Laser Power [W]','FontSize',18)
-        set(gca,'FontSize',20)
-        xlabel('Theta (deg)','FontSize',18)
-    
-        legend('BRDF [1/str]','Laser Power [W]','FontSize',14)
-        title(['BRDF-LaserPower Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
-        grid on
-        grid minor
-        saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
-        saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
-        delete(f8);
+
+      % Laser Power Profile plots
+      f8 = figure('Visible','off');
+      ax8 = gca;
+
+      yyaxis left
+
+      plot(theta_s,BRDFyint)
+
+      hold on
+
+      ax8.YLabel.String = 'BRDF [1/str]';
+      
+      yyaxis right
+
+      plot(theta_s,power_corrected)
+
+      ax8.Title.String = ['BRDF-LaserPower Profile ', strrep(folder.sample_name,'_','\_')];
+      ax8.YLabel.String = 'Laser Power [W]';
+      ax8.XLabel.String = 'Theta (deg)';
+  
+      legend('BRDF [1/str]','Laser Power [W]','FontSize',12)
+
+      saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
+      saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
+      delete(f8);
+
     end
     
   case 'CRYO'
