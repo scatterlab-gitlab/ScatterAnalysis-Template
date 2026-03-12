@@ -1364,8 +1364,11 @@ switch experiment
 
     % Laser Power Profile plots
     f6 = figure('Visible','off');
+    ax6 = gca;
+
     yyaxis left
-    plot(image_duration_time,BRDFyint)
+    p6 = plot(image_duration_time,BRDFyint);
+
     hold on
     ylabel('BRDF [1/str]','FontSize',18)
     set(gca,'FontSize',12)
@@ -1382,6 +1385,26 @@ switch experiment
     saveas(f6, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
     saveas(f6, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
     delete(f6);
+
+
+%% FIGURE 7: RELATIVE HUMIDITY PLOT
+%---------------------------------------------------------------------------------------------------
+
+    f7 = figure;
+    ax7 = gca;
+
+    p7 = plot(propper_time,humid.Sensor_1,'Marker','v');
+
+    ax7.Title.String = 'Relative Humidity Plot';   
+    ax7.Xlabel.String = 'Time (hh:mm:ss)';
+    ax7.Ylabel.String = 'Relative Humidity (%)';
+
+    p7.MarkerSize = 9;
+    p7.LineWidth = 4;
+
+    set(f7,'Position',[0,0,1000,1000]);
+
+    saveas(f7,[folder.analysisPath,folder.sample_name,slash,'Relative_Humidity_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
 
 
   case 'ARS'
@@ -2939,23 +2962,3 @@ file_name = 'Note.txt';
 file_ID = fopen([folder.analysisPath,slash,file_name], 'w');
 fprintf(file_ID, note_text);
 fclose(file_ID);
-
-%% Working on some things here. DO NOT DELETE! Let me COOK
-%---------------------------------------------------------------------------------------------------
-
-% figure; title('Relative Humidity Plot');
-% hold on;
-
-% p1 = plot(propper_time,humid.Sensor_1,'Marker','v');
-% p2 = plot(propper_time,humid.Sensor_2,'Marker','v');
-
-% xlabel('Time (hh:mm:ss)');
-% ylabel('Relative Humidity (%)');
-% legend('Door RH%','Camera RH%');
-% p1.MarkerSize = 9; p2.MarkerSize = 9;
-% p1.LineWidth = 4; p2.LineWidth = 4;
-% fontsize(20,'points');
-% pbaspect([1,1,1]);
-% set(gcf,'Position',[0,0,1000,1000]); % Set position and size of plot that will be saved
-% 
-% saveas(gcf,'/Users/scatterlab/Desktop/PL_13649_AAS_Relative_Humidity.png');
