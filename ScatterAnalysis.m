@@ -1393,14 +1393,15 @@ switch experiment
     f7 = figure;
     ax7 = gca;
 
-    p7 = plot(propper_time,humid.Sensor_1,'Marker','v');
+    p7 = plot(duration_time,humidity);
+
+    p7.Marker = 'v';
+    p7.MarkerSize = 9;
+    p7.LineWidth = 4;
 
     ax7.Title.String = 'Relative Humidity Plot';   
     ax7.Xlabel.String = 'Time (hh:mm:ss)';
     ax7.Ylabel.String = 'Relative Humidity (%)';
-
-    p7.MarkerSize = 9;
-    p7.LineWidth = 4;
 
     set(f7,'Position',[0,0,1000,1000]);
 
