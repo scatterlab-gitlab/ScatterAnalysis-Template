@@ -60,16 +60,16 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 %% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
-folder.data_path = mock_ARS_data_path;
+folder.data_path = mock_AAS_data_path;
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'ARS';
+experiment = 'AAS';
 
 % Note to save as a text file about analysis specifics or changes
-note_text = 'Trying to add properly scaled axies to the CCD images';
+note_text = 'Humidity data';
 
 % Sample Name - NO UNDERSCORES!!! Use spaces
-sample = 'Getting Axies';
+sample = 'Does Humidity Work';
 
 %% DEBUGGING/PROCESSING VARIABLES
 %---------------------------------------------------------------------------------------------------
@@ -676,7 +676,7 @@ switch experiment
       display(newline);
 
       clc;
-      Image status and timing
+      % Image status and timing
       disp([num2str(s),' out of ', num2str(total_images)])
       disp(toc)
       tic
@@ -1266,8 +1266,8 @@ switch experiment
       p3b.MarkerFaceColor = 'g';
 
       ax3.XLabel.String = 'Elapsed Time (hh:mm:ss)';
-      ax3.YLabel = 'BRDF [1/str]';
-      ax3.Title = ['BRDF ',sample];
+      ax3.YLabel.String = 'BRDF [1/str]';
+      ax3.Title.String = ['BRDF ',sample];
 
       f3.Position = [0,0,1618,1000];
   
@@ -1289,9 +1289,9 @@ switch experiment
 
       p4.Marker = 's';
 
-      ax4.Title = 'Incident Power Vs Time';
-      ax4.XLabel = 'Time';
-      ax4.YLabel = 'Power [W]';
+      ax4.Title.String = 'Incident Power Vs Time';
+      ax4.XLabel.String = 'Time';
+      ax4.YLabel.String = 'Power [W]';
       ax4.Box = 'on';
       grid on;
 
@@ -1390,23 +1390,22 @@ switch experiment
 %% FIGURE 7: RELATIVE HUMIDITY PLOT
 %---------------------------------------------------------------------------------------------------
 
-    f7 = figure;
+    f7 = figure();
     ax7 = gca;
 
     p7 = plot(duration_time,humidity);
 
     p7.Marker = 'v';
-    p7.MarkerSize = 9;
-    p7.LineWidth = 4;
+    p7.MarkerSize = 4;
+    p7.LineWidth = 2;
 
     ax7.Title.String = 'Relative Humidity Plot';   
-    ax7.Xlabel.String = 'Time (hh:mm:ss)';
-    ax7.Ylabel.String = 'Relative Humidity (%)';
+    ax7.XLabel.String = 'Time (hh:mm:ss)';
+    ax7.YLabel.String = 'Relative Humidity (%)';
 
     set(f7,'Position',[0,0,1000,1000]);
 
     saveas(f7,[folder.analysisPath,folder.sample_name,slash,'Relative_Humidity_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
-
 
   case 'ARS'
 %% ARS ANALYSIS
