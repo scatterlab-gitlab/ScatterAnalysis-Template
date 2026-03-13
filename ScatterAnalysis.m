@@ -1177,13 +1177,13 @@ switch experiment
       if print_images == 1
 
         f2 = figure('Visible','off');
-        ax5= gca;
+        ax2= gca;
 
         imagesc(img_x_mm,img_y_mm,img.fit);
         
         hold on;
         % Adjusts Colormap limits [cMin,cMax] on output images, change Brightness
-        ax5.CLim = [clim_Min, clim_Max];
+        ax2.CLim = [clim_Min, clim_Max];
         colormap('gray');
         boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
         linewidth = {.5, .1, .1, .1, .1, .1};
@@ -1205,7 +1205,7 @@ switch experiment
 
         set(f2,'units','points','position',[0 0 480 480]); % make it a square
         
-        set(ax5,'position',[0 0 1 1]) % make square axes fill the figure
+        set(ax2,'position',[0 0 1 1]) % make square axes fill the figure
         axis square;
         axis on;
 
@@ -1304,11 +1304,12 @@ switch experiment
     end
 
 %% FIGURE 5: HEATER POWER
-    
+%---------------------------------------------------------------------------------------------------    
+
   if print_images == 1
 
     % Create Temperature/Power Graph from excel file
-    f5a = figure('Visible','off');
+    f5 = figure('Visible','off');
     ax5 = gca;
 
     yyaxis left
@@ -1319,78 +1320,110 @@ switch experiment
 
     yyaxis right
 
-    plot(duration_time,heater_power)
+    p5 = plot(duration_time,heater_power);
 
-    title(['Temperature-Power Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
-    ylabel('Heater Power [%]','FontSize',14)
-    xlabel('Time (hr)','FontSize',18)
+    ax5.Title.String = ['Temperature-Power Profile ', strrep(folder.sample_name,'_','\_')];
+    ax5.YLabel.String = 'Heater Power [%]';
+    ax5.XLabel.String = 'Time (hr)';
 
-    saveas(f5a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
-    saveas(f5a, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
-    delete(f5a);
+    saveas(f5, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
+    saveas(f5, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
+    delete(f5);
+
+  end
     
-    % create a monitored power vs time plot that shows the entire power
-    % monitor measurements, not just those from the interpolation
-    
+%% FIGURE 6: CORRECTED POWER OVER TIME
+%---------------------------------------------------------------------------------------------------
+
+  if print_images == 1
     if use_power_monitor==1
-      f5b = figure('Visible','off');
-      plot(date_time, power_corrected, 's-', 'MarkerFaceColor', 'r')
-      xlabel('Elapsed Time', 'FontSize', 20);
-      ylabel('Power [W]', 'FontSize', 20);
-      title('Monitored Power Over Time','FontSize',30,'FontName','Times New Roman','Interpreter','none');
-      saveas(f5b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-      saveas(f5b, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
-      delete(f5b);
-           
-      % Make a graph of power monitor measurements alongside heater power percentage to check correlation
-      f5c = figure('Visible','off');
-      yyaxis right
-      plot(image_duration_time, image_power, 's-','MarkerFaceColor','r')
-      ylabel('Power [W]', 'FontSize', 20)
-      yyaxis left
-      plot(duration_time, heater_power, 'b-')
-      ylabel('Output Power [%]', 'FontSize', 20)
-      legend('Calibrated Monitor Power', 'Heater Power')
-      xlabel('Elapsed Time',  'FontSize', 20)
-      title('Laser and Heater Power During Annealing Run', 'FontSize',20)
-      saveas(f5c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-      saveas(f5c, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
-      delete(f5c);
+
+      f6 = figure('Visible','off');
+      ax6 = gca;
+
+      p6 = plot(date_time, power_corrected);
+
+      ax6.XLabel.String = 'Elapsed Time';
+      ax6.YLabel.String = 'Power [W]';
+      ax6.Title.String = 'Monitored Power Over Time';
+
+      saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+      saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+      delete(f6);
 
     end
   end
 
-%% FIGURE 6: LASER POWER PROFILE
-
-    % Laser Power Profile plots
-    f6 = figure('Visible','off');
-    ax6 = gca;
-
-    yyaxis left
-    p6 = plot(image_duration_time,BRDFyint);
-
-    hold on
-    ylabel('BRDF [1/str]','FontSize',18)
-    set(gca,'FontSize',12)
-    yyaxis right
-    plot(image_duration_time,image_power)
-    ylabel('Laser Power [W]','FontSize',18)
-    set(gca,'FontSize',12)
-    xlabel('Time (hh:mm:ss)','FontSize',14)
-
-    legend('BRDF [1/str]','Laser Power [W]','FontSize',14)
-    title(['BRDF-LaserPower Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
-    grid on
-    grid minor
-    saveas(f6, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
-    saveas(f6, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
-    delete(f6);
-
-
-%% FIGURE 7: RELATIVE HUMIDITY PLOT
+%% FIGURE 7: POWER MONITOR AND HEATER POWER
 %---------------------------------------------------------------------------------------------------
 
-    f7 = figure();
+  if print_images == 1
+
+    f7 = figure('Visible','off');
+    ax7 = gca;
+
+    yyaxis right
+
+    plot(image_duration_time, image_power, 's-','MarkerFaceColor','r')
+
+    ylabel('Power [W]', 'FontSize', 20)
+
+    yyaxis left
+
+    plot(duration_time, heater_power, 'b-')
+
+    ax7.XLabel.String = 'Output Power [%]';
+    ax7.YLabel.String = 'Elapsed Time';
+    ax7.Title.String  = 'Laser and Heater Power During Annealing Run';
+
+    legend('Calibrated Monitor Power', 'Heater Power')
+
+    saveas(f7, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+    saveas(f7, [folder.analysisPath,folder.sample_name,slash,'heater_laser_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+    delete(f7);
+
+  end
+
+
+%% FIGURE 8: LASER POWER PROFILE
+%---------------------------------------------------------------------------------------------------
+
+  if print_images == 1
+
+    % Laser Power Profile plots
+    f8 = figure('Visible','off');
+    ax8 = gca;
+
+    yyaxis left
+
+    plot(image_duration_time,BRDFyint);
+
+    hold on
+
+    ax8.YLabel.String = 'BRDF [1/str]';
+
+    yyaxis right
+
+    plot(image_duration_time,image_power)
+
+    ax8.YLabel.String = 'Laser Power [W]';
+    ax8.XLabel.String = 'Time (hh:mm:ss)';
+    ax8.Title.String = ['BRDF-LaserPower Profile ', strrep(folder.sample_name,'_','\_')];
+
+    legend('BRDF [1/str]','Laser Power [W]','FontSize',14)
+
+    saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
+    saveas(f8, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
+    delete(f8);
+
+  end
+
+%% FIGURE 9: RELATIVE HUMIDITY PLOT
+%---------------------------------------------------------------------------------------------------
+
+  if print_images == 1
+
+    f7 = figure('Visible','off');
     ax7 = gca;
 
     p7 = plot(duration_time,humidity);
@@ -1406,6 +1439,8 @@ switch experiment
     set(f7,'Position',[0,0,1000,1000]);
 
     saveas(f7,[folder.analysisPath,folder.sample_name,slash,'Relative_Humidity_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
+
+  end
 
   case 'ARS'
 %% ARS ANALYSIS
