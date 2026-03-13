@@ -2976,8 +2976,8 @@ end
 switch experiment
   case 'AAS'
     % Custom MakeTable() function to make and save table. Enter cell of variable_names, cell of variables, and string of save path
-    MakeTable({'Image_Time','Image_BRDF','Image_Temperature','Full_Time','Heater_Power'}, ...
-              {image_duration_time,BRDFyint,image_temp,duration_time,heater_power},[folder.analysisPath,slash,'BRDF_Data.txt']);
+    MakeTable({'Image_Time','Image_BRDF','Image_Temperature','Full_Time','Heater_Power','Humidity'}, ...
+              {image_duration_time,BRDFyint,image_temp,duration_time,heater_power,humidity},[folder.analysisPath,slash,'BRDF_Data.txt']);
   case 'ARS'
     % Custom MakeTable() function to make and save table. Enter cell of variable_names, cell of variables, and string of save path
     MakeTable({'Angle','BRDF','Temperature','TIS'}, ...
