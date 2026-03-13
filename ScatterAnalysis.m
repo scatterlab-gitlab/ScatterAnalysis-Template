@@ -2831,46 +2831,43 @@ switch experiment
       image = zeros;
     end
     
-%% CRYO FIGURE 3: 
-    
-    % BRDF vs theta_s and BRDFlimit
-    %---------------------------------------------------------------------------------------------------
+%% CRYO FIGURE 3: BRDF VS THETA
+    if print_images == 1
 
-    BRDF_title = ['BRDF ',folder.sample_name];
+      BRDF_title = ['BRDF ',folder.sample_name];
+  
+      f3 = figure('Visible','off');
+  
+      ax3 = gca;
+  
+      semilogy(image_duration_time(1:total_images),minLIM,'v-','DisplayName','BRDF limit');
+  
+      box on
+      grid on
+      hold on;
+  
+      semilogy(image_duration_time(1:total_images),BRDFyint,'s','MarkerFaceColor','g','Marker','square', ...
+               'LineStyle','none','Color', 'g', 'DisplayName', sample);
+  
+      legend('minLim', 'BRDFyint')
+  
+      f3.Position = [1 1000 1000 1000];
+  
+      ax3.Title.String = BRDF_title;
+      ax3.XLabel.String = 'Elapsed Time (hh:mm:ss)';
+      ax3.YLabel.String = 'BRDF [1/str]';
+      ax3.YMinorTick = 'on';
+      ax3.YMinorGrid = 'on';
+  
+      saveas(gcf,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+      saveas(gcf,[folder.analysisPath,folder.sample_name,slash,'BRDF_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+  
+      delete(f3);
 
-    f3 = figure('Visible','off');
-
-    ax3 = gca;
-
-    semilogy(image_duration_time(1:total_images),minLIM,'v-','DisplayName','BRDF limit');
-
-    box on
-    grid on
-    hold on;
-
-    semilogy(image_duration_time(1:total_images),BRDFyint,'s','MarkerFaceColor','g','Marker','square', ...
-             'LineStyle','none','Color', 'g', 'DisplayName', sample);
-
-    legend('minLim', 'BRDFyint')
-
-    f3.Position = [1 1000 1000 1000];
-
-    ax3.Title.String = BRDF_title;
-    ax3.XLabel.String = 'Elapsed Time (hh:mm:ss)';
-    ax3.YLabel.String = 'BRDF [1/str]';
-    ax3.YMinorTick = 'on';
-    ax3.YMinorGrid = 'on';
-    % ax3.Position = [0.13 0.148923319327731 0.775 0.729067111294278];
-
-    saveas(gcf,[folder.analysisPath,folder.sample_name,slash,'BRDF_',...
-           folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-    saveas(gcf,[folder.analysisPath,folder.sample_name,slash,'BRDF_',...
-           folder.timeAnalysis,'_', folder.sample_name,'.png']);
-
-    delete(f3);
+    end
     
 %% CRYO FIGURE 4: GET RID OF?
-
+  if print_images == 1
     % Incident power over scattering angle
     %---------------------------------------------------------------------------------------------------
     
@@ -2894,10 +2891,11 @@ switch experiment
     saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
     saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
     delete(f4);
+  end
     
 %% CRYO FIGURE 5: TEMP POWER GRAPH
-    % Temperature/Power Graph
-    %---------------------------------------------------------------------------------------------------%%
+    
+  if print_images == 1
     
     f5 = figure('Visible','off');
     ax5 = gca;
@@ -2926,32 +2924,47 @@ switch experiment
     saveas(f5, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
     saveas(f5, [folder.analysisPath,folder.sample_name,slash, 'Temp_Power_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
     close(f5);
+  
+  end
     
 %% CRYO FIGURE 6: MONITORED POWER PLOT
-    % Monitored power vs time plot that shows the entire power
-    %-------------------------------------------------------------------------------------------------------------------
     
+  if print_images == 1
     if use_power_monitor==1
-      figure('Visible','off');
+
+      f6 = figure('Visible','off');
+      ax6 = gca;
+
       plot(image_duration_time, image_transmitted, 's-', 'MarkerFaceColor', 'r')
+
       xlabel('Elapsed Time (days)', 'FontSize', 20);
       ylabel('Power [W]', 'FontSize', 20);
       title('Monitored Power Over Time','FontSize',30,'FontName','Times New Roman','Interpreter','none');
-      saveas(gcf, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
-      saveas(gcf, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
-      delete(gcf);
-    
+
+      saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
+      saveas(f6, [folder.analysisPath,folder.sample_name,slash,'Monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
+      delete(ax6);
+
     end
-    
+  end
+
+%% CRYO FIGURE 7: BRDF VS LASER POWER
+  if print_images == 1
+
     figure('Visible','off');
     yyaxis left
+
     plot(image_duration_time(1:total_images),BRDFyint,'b-')
+
     hold on
+
     ylabel('BRDF [1/str]','FontSize',18)
     set(gca,'FontSize',12)
     
     yyaxis right
+    
     plot(image_duration_time,image_power,'r-')
+
     ylabel('Laser Power [W]','FontSize',18)
     set(gca,'FontSize',12)
     hold;
@@ -2963,9 +2976,12 @@ switch experiment
     title(['BRDF-LaserPower Profile ', strrep(folder.sample_name,'_','\_')],'FontSize',18)
     grid on
     grid minor
+
     saveas(gcf, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.fig']);
     saveas(gcf, [folder.analysisPath,folder.sample_name,slash,'BRDF_LaserPower_', folder.sample_name,'_', folder.timeAnalysis, '.png']);
     delete(gcf);
+
+  end
 end
 
 %% DATA TABLE SAVING
