@@ -60,7 +60,8 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 %% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
-folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2026_2_20_12_1_27_PL004_test_run_attempt_5';
+% folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2026_2_20_12_1_27_PL004_test_run_attempt_5';
+folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2022-2-9_19-39_PL004_SLED_ARS_COPY';
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
 experiment = 'ARS';
@@ -69,7 +70,7 @@ experiment = 'ARS';
 note_text = 'Finding out why the TIS for sample PL004 is negative. Completely flipped from the last time it was ran in the ARS.';
 
 % Sample Name - NO UNDERSCORES!!! Use spaces
-sample = 'PL004';
+sample = '2022 PL004';
 
 %% DEBUGGING/PROCESSING VARIABLES
 %---------------------------------------------------------------------------------------------------
@@ -85,7 +86,7 @@ DEBUG = 1;
 
 % If locateROI = 1, script will only display 'image_Selector' and let you adjust ROI
 % If locateROI = 0, script runs normally
-locate_ROI = 1;
+locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
 total_images = 5;
@@ -145,18 +146,18 @@ dark_clim_Min = 0;
 dark_clim_Max = 3000;
 
 % Min x value of ROI
-ROIxmin = 1724;
+ROIxmin = 1429;
 % Max x value of ROI
-ROIxmax = 2493;
+ROIxmax = 2629;
 
 % Min y value of ROI
-ROIymin = 1486;
+ROIymin = 1270;
 % Max y value of ROI
-ROIymax = 2371;
+ROIymax = 2470;
 
 % How far forward is the observed surface of the optic from the center of the
 % ARS optic holder on the table. [pixels]
-df = 900;
+df = 250;
 
 % Dark region scaling factor mask parameters
 % Find a spot on the optic near the ROI (but not inside of it) that will find black body radiation
@@ -264,8 +265,7 @@ end
 % Pickoff Power Correction Coefficients Ordered from highest order to lowest order coefficient
 switch experiment
   case 'ARS'
-    correction_coefficients = [4.275448819818776e+04,2.945571263780217e+04,-4.111329671854571e+03,...
-                               3.765240633203828e+02,65.570193682492090,-0.003145133088967];
+    correction_coefficients = [2.8791e5,0.0007e5,0.0000e5];
   case 'AAS'
     correction_coefficients = 9.2264;
   case 'CRYO'
@@ -906,16 +906,6 @@ switch experiment
       % Calculates the absolute uncertainty in BRDF measurement
       uncert_BRDFyint(n) = b(n)*tot_uncert(n);
       
-      switch experiment
-        case 'ARS'
-          % Calculate PSD_fx_fy for each point, brdf_to_psd expects wavelength in nm
-          [PSD_fx_fy(n),S_iso(n),f_quad_sum(n)] = brdf_to_psd(theta_s(n),phi_s(n),correction_angle,lambda*1e9,BRDFyint(n)');
-          
-          % calculate sigma (can only do so if we have second point already)
-          if n>1
-            [sigma_rel, sigma_squared, sigma_cumulative] = psd_to_sigma(f_quad_sum, S_iso);
-          end
-      end
       
       % Determine BRDF limit based on darkest small box in image number of divisions per line
       %---------------------------------------------------------------------------------------------
@@ -1592,7 +1582,8 @@ switch experiment
             
         end
 
-        img.fit = image.fit - (image_dark.fit*Factor);
+        % img.fit = image.fit - (image_dark.fit*Factor);
+        img.fit = image.fit - (image_dark.fit);
    
       else
         % Read scattering image pixel values as doubles
@@ -1694,7 +1685,32 @@ switch experiment
       
       % calculate sigma (can only do so if we have second point already)
       if n>1
-        [sigma_rel, sigma_squared, sigma_cumulative] = psd_to_sigma(f_quad_sum, S_iso);
+        
+        size = length(f_quad_sum)-1;
+
+        % Prealocations to run quicker
+        diff_f_quad_sum = zeros(1,size);
+        Siso_mean = zeros(1,size);
+        integrand = zeros(1,size);
+        
+        % Determines the value of the integrand in [Eqn 4.6] of Stover
+        for i = 1:size
+          
+          diff_f_quad_sum(i) = (f_quad_sum(i+1)-f_quad_sum(i));
+          Siso_mean(i) = mean([S_iso(i) S_iso(i+1)]);
+          integrand(i) = S_iso(i)*diff_f_quad_sum(i);
+            
+        end
+        
+        sigma_squared = sum(integrand);
+
+        %Relevant bandwidth limited surface roughness (nm)
+        sigma_rel = sqrt(sigma_squared);
+
+        %Gives cumulative sum of sigma for plotting (nm)
+        sigma_cumulative = cumsum(integrand);
+        
+        % [sigma_rel, sigma_squared, sigma_cumulative] = psd_to_sigma(f_quad_sum, S_iso);
       end
       
       % Determine BRDF limit based on darkest small box in image number of divisions per line
