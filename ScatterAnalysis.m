@@ -60,16 +60,16 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 %% FILE AND EXPERIMENT TYPE
 
 % String path to the folder will all the data
-folder.data_path = mock_AAS_data_path;
+folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2026_2_20_12_1_27_PL004_test_run_attempt_5';
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'AAS';
+experiment = 'ARS';
 
 % Note to save as a text file about analysis specifics or changes
-note_text = 'Humidity data';
+note_text = 'Finding out why the TIS for sample PL004 is negative. Completely flipped from the last time it was ran in the ARS.';
 
 % Sample Name - NO UNDERSCORES!!! Use spaces
-sample = 'Does Humidity Work';
+sample = 'PL004';
 
 %% DEBUGGING/PROCESSING VARIABLES
 %---------------------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ DEBUG = 1;
 
 % If locateROI = 1, script will only display 'image_Selector' and let you adjust ROI
 % If locateROI = 0, script runs normally
-locate_ROI = 0;
+locate_ROI = 1;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
 total_images = 5;
