@@ -269,7 +269,7 @@ switch experiment
   case 'AAS'
     correction_coefficients = 9.2264;
   case 'CRYO'
-    correction_coefficients = [19.5589,-0.0001];
+    correction_coefficients = [869.0849,18.7581,0.0000];
   case 'TRS'
     % The calculated calibration constant for converting the TRS monitor power into
     % the incident power, used in line 437
