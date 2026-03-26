@@ -188,7 +188,7 @@ end
 %---------------------------------------------------------------------------------------------------
 
 % Incident power [W] average before and after power measurement
-incident_power = 7.9e-3;
+incident_power = 2.87e-3;
 
 % If using Neutral Density Filter (like for Spectralon) filter = 1/273, otherwise filter = 1)
 filter = 1;
