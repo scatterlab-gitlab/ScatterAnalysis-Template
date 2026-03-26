@@ -61,16 +61,17 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 
 % String path to the folder will all the data
 % folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2026_2_20_12_1_27_PL004_test_run_attempt_5';
-folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2022-2-9_19-39_PL004_SLED_ARS_COPY';
+% folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2022-2-9_19-39_PL004_SLED_ARS_COPY';
+folder.data_path = mock_AAS_data_path;
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'ARS';
+experiment = 'AAS';
 
 % Note to save as a text file about analysis specifics or changes
-note_text = 'Finding out why the TIS for sample PL004 is negative. Completely flipped from the last time it was ran in the ARS.';
+note_text = 'Debugging';
 
 % Sample Name - NO UNDERSCORES!!! Use spaces
-sample = '2022 PL004';
+sample = 'Random';
 
 %% DEBUGGING/PROCESSING VARIABLES
 %---------------------------------------------------------------------------------------------------
@@ -89,13 +90,13 @@ DEBUG = 1;
 locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
-total_images = 5;
+total_images = 4;
 
 % Assign a value for n which will be the image number you want to evaluate
 % before the entire script begins. This is good for checking the distance
 % forward for the end images (and possibly claim values for farther images as
 % well) Only works when locateROI == 1
-image_selector = 3;
+image_selector = 1;
 
 % PROCESSING
 %---------------------------------------------------------------------------------------------------
@@ -267,7 +268,7 @@ switch experiment
   case 'ARS'
     correction_coefficients = [2.8791e5,0.0007e5,0.0000e5];
   case 'AAS'
-    correction_coefficients = 9.2264;
+    correction_coefficients = [9.7751, 0.0002];
   case 'CRYO'
     correction_coefficients = [869.0849,18.7581,0.0000];
   case 'TRS'
