@@ -1004,7 +1004,7 @@ switch experiment
 
         text(200, 3886, [['Image Number: ',num2str(image_selector)],...
                          ' \newline',['Exposure Time = ',num2str(exposure_time(n)),' s'], ...
-                         ' \newline', ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'], ...
+                         ' \newline', ['BRDF = ',num2str(BRDFyint(n)),' 1/str'], ...
                          ' \newline', ['Background Factor = ', num2str(sprintf('%.2f',Factor)),' (Bright Count / Dark Count)']],...
                          'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1]);
 
@@ -1013,6 +1013,9 @@ switch experiment
         colormap('gray');
         ax1.CLim = [clim_Min, clim_Max];
         ax1.DataAspectRatio = [1 1 1];
+        ax1.TickDir = 'in';
+        ax1.XColor = 'w';
+        ax1.XRuler.TickLabelGapOffset = 10;
 
         return
       end
@@ -1032,9 +1035,8 @@ switch experiment
           
         
         % Plot the CCD image with its ROIs
-        %---------------------------------------------------------------------------------------------------
+        %---------------------------------------------------------------------------------------------------------------
         ax1 = nexttile([2,2]);
-  
   
         % Get the width and height of the CCD image (pixel integer)
         img_x = 1:1:width(img.fit);
@@ -1066,8 +1068,9 @@ switch experiment
         
         if darkimages == 1
           for z = 1:numROIs
-            plot(squeeze(x_ellipse(z,:)), squeeze(y_ellipse(z,:)),'LineStyle',linestyle{z},'color',boxcolors{z},...
-                 'LineWidth',linewidth{z})
+            plot(((squeeze(x_ellipse(z,:))) ./ pix_per_mm) - pixel_x_shift,...
+                 ((squeeze(y_ellipse(z,:))) ./ pix_per_mm) - pixel_y_shift,...
+                 'LineStyle',linestyle{z},'color',boxcolors{z},'LineWidth',linewidth{z});
           end
   
         else
@@ -1082,9 +1085,9 @@ switch experiment
   
         title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
         axis square;
-        axis off;
   
         % Plot histogram
+        %---------------------------------------------------------------------------------------------------------------
         ax2 = nexttile([2,2]);
   
         % take matrix RoI(n).fit and turn into a giant column vector
@@ -1174,14 +1177,14 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
       if print_images == 1
 
-        f2 = figure('Visible','off');
+        f2 = figure();
         ax2= gca;
 
         imagesc(img_x_mm,img_y_mm,img.fit);
         
         hold on;
         % Adjusts Colormap limits [cMin,cMax] on output images, change Brightness
-        ax2.CLim = [clim_Min, clim_Max];
+
         colormap('gray');
         boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
         linewidth = {.5, .1, .1, .1, .1, .1};
@@ -1203,9 +1206,18 @@ switch experiment
 
         set(f2,'units','points','position',[0 0 480 480]); % make it a square
         
-        set(ax2,'position',[0 0 1 1]) % make square axes fill the figure
         axis square;
         axis on;
+
+        ax2.Position = [0 0 1 1]; % make square axes fill the figure
+        ax2.CLim = [clim_Min, clim_Max];
+        ax2.DataAspectRatio = [1 1 1];
+        ax2.TickDir = 'in';
+        ax2.XColor = 'w';
+        ax2.YColor = 'w';
+        ax2.XRuler.TickLabelGapOffset = -20;
+        ax2.YRuler.TickLabelGapOffset = -20;
+        ax2.FontSize = 12;
 
   
         print(f2,[folder.analysisPath,'CCD_PNG',slash,num2str(pic_ID(n)),'.png'], '-dpng','-r300');
@@ -1213,28 +1225,28 @@ switch experiment
         delete(f2);
       
   
-        for z = 1:numROIs
-          % Sets the RoI value in the structure to null, replacing the 4096x4096
-          RoI(z).fit = 0;
-          
-          % Sets the mask value in the structure to null, replacing the 4096x4096
-          mask(z).fit = 0;
-          
-          % Overwrites the values of each element to null
-          mask_crop(z).fit = 0;
-          
-          % Overwrites the values of each element to null
-          RoI_mask(z).fit = 0;
-        end
-        
-        % Overwrites the values of each element to null
-        image.fit = 0;
-        
-        % Overwrites the values of each element to null
-        image_dark.fit = 0;
-        
-        % Overwrites the values of each element to null
-        img.fit = 0;
+        % for z = 1:numROIs
+        %   % Sets the RoI value in the structure to null, replacing the 4096x4096
+        %   RoI(z).fit = 0;
+        % 
+        %   % Sets the mask value in the structure to null, replacing the 4096x4096
+        %   mask(z).fit = 0;
+        % 
+        %   % Overwrites the values of each element to null
+        %   mask_crop(z).fit = 0;
+        % 
+        %   % Overwrites the values of each element to null
+        %   RoI_mask(z).fit = 0;
+        % end
+        % 
+        % % Overwrites the values of each element to null
+        % image.fit = 0;
+        % 
+        % % Overwrites the values of each element to null
+        % image_dark.fit = 0;
+        % 
+        % % Overwrites the values of each element to null
+        % img.fit = 0;
 
       end
     end
