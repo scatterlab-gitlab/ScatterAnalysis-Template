@@ -1177,6 +1177,8 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
       if print_images == 1
 
+        % f2 = figure('Visible', 'off');
+        close all;
         f2 = figure();
         ax2= gca;
 
@@ -1198,27 +1200,31 @@ switch experiment
 
         TITLE = [sample, ' Image ', char(image_name)];
 
-        text((280 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',TITLE,' \newline',ELAPSE_TIME,...
-            '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE, '\newline', TEMP],...
-            'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1]);
-
-        title([folder.sample_name,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
+        text((280 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, ...
+             [' \newline',TITLE,' \newline',ELAPSE_TIME,...
+             '\newline',POWERINC,'\newline',POWERSCAT,'\newline',BRDFVALUE, '\newline', TEMP],...
+             'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',11, 'Color', [1-eps 1 1]);
 
         set(f2,'units','points','position',[0 0 480 480]); % make it a square
         
         axis square;
         axis on;
 
-        ax2.Position = [0 0 1 1]; % make square axes fill the figure
+        cb = colorbar;
+        cb.Color = 'w';
+        
+
+        f2.Color = 'black';
         ax2.CLim = [clim_Min, clim_Max];
         ax2.DataAspectRatio = [1 1 1];
         ax2.TickDir = 'in';
         ax2.XColor = 'w';
         ax2.YColor = 'w';
-        ax2.XRuler.TickLabelGapOffset = -20;
-        ax2.YRuler.TickLabelGapOffset = -20;
+        ax2.XLabel.String = 'X (mm)';
+        ax2.YLabel.String = 'Y (mm)';
         ax2.FontSize = 12;
-
+        ax2.LooseInset = ax2.TightInset; % Remove whitespace around figure
+        
   
         print(f2,[folder.analysisPath,'CCD_PNG',slash,num2str(pic_ID(n)),'.png'], '-dpng','-r300');
 
