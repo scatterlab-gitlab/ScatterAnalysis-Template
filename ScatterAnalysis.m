@@ -37,7 +37,7 @@
 %---------------------------------------------------------------------------------------------------
 
 % Clear all variables, images, and command window to prepare for a new analysis 
-clear; close all; clc;
+clear; close all; clc; format longG;
 
 %% MOCK DATA FILE PATHS
 %-----------------------------------------------------------------------------------------------------------------------
@@ -351,6 +351,7 @@ end
 % Add a slash at the end of the folder path for easy workability within code
 folder.data_path = [folder.data_path,slash];
 
+
 % When printing sample to a graph, underscores will subscript the next character, which is why we
 % use spaces in its name. For folder paths, we replace spaces (' ') with underscores ('_')
 folder.sample_name = strrep(sample,' ','_');
@@ -463,9 +464,15 @@ end
 % Read all data files from their paths
 switch experiment
   case 'ARS'
-    experiment_data = readtable([folder.data_path,'PowermeterData.txt'],'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
+    folder.data_file = [folder.data_path,'PowermeterData.txt'];
+
+    experiment_data = readtable(folder.data_file,'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
+
   case 'AAS'
-    experiment_data = readtable([folder.data_path,'OvenData.txt'],'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
+    folder.data_file = [folder.data_path,'OvenData.txt'];
+
+    experiment_data = readtable(folder.data_file,'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
+
   case 'CRYO'
     experiment_data = readtable([folder.data_path,'CryoData.txt'],'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
     cam_data = readtable([folder.data_path, 'CamData.txt'],'VariableNamesLine',1,'ReadVariableNames',true,'Delimiter','comma');
@@ -1115,7 +1122,7 @@ switch experiment
         
         % Create text information to add to plot
         ELAPSE_TIME = ['Elapsed Time = ',char(image_duration_time(n))];
-        POWERINC = ['Incident power = ',num2str(sprintf('%.2f',power_corrected(n)*1000)), ' mW'];
+        POWERINC = ['Incident power = ',num2str(power_corrected(n)*1000), ' mW'];
         POWERSCAT = ['Scattered power = ',num2str(sprintf('%.2s',ARBccd(1).*muFcal.*1000)),' {\mu}W'];
         BRDFVALUE = ['BRDF = ',num2str(sprintf('%.2s',BRDFyint(n))),' 1/str'];
         TEMP = ['Temperature = ', num2str(round(image_temp(n),1)), '{\circ}C' ];
