@@ -90,7 +90,7 @@ DEBUG = 1;
 locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
-total_images = 4;
+total_images = 1;
 
 % Assign a value for n which will be the image number you want to evaluate
 % before the entire script begins. This is good for checking the distance
@@ -971,7 +971,7 @@ switch experiment
         % max's are, and input them accordingly
     
         % Plot the image and RoIs
-        figure;
+        f_debug = figure;
         ax1 = gca;
 
         % Plot the CCD image with the converted x and y values
@@ -1009,12 +1009,17 @@ switch experiment
                          'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1]);
 
         % CCD image properties
-        colorbar;
+        f_debug.Color = 'black';
+
+        cb_debug = colorbar;
+        cb_debug.Color = 'w';
+
         colormap('gray');
         ax1.CLim = [clim_Min, clim_Max];
         ax1.DataAspectRatio = [1 1 1];
         ax1.TickDir = 'in';
         ax1.XColor = 'w';
+        ax1.YColor = 'w';
         ax1.XRuler.TickLabelGapOffset = 10;
 
         return
@@ -1082,6 +1087,11 @@ switch experiment
           ax1.FontSize = 18;
         end
   
+        ax1.XColor = [0.5 0.5 0.5];
+        ax1.YColor = [0.5 0.5 0.5];
+        ax1.XLabel.String = 'X (mm)';
+        ax1.YLabel.String = 'Y (mm)';
+        ax1.FontSize = 10;
   
         title([sample,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
         axis square;
@@ -1177,15 +1187,12 @@ switch experiment
 %---------------------------------------------------------------------------------------------------
       if print_images == 1
 
-        % f2 = figure('Visible', 'off');
-        close all;
-        f2 = figure();
+        f2 = figure('Visible', 'off');
         ax2= gca;
 
         imagesc(img_x_mm,img_y_mm,img.fit);
         
         hold on;
-        % Adjusts Colormap limits [cMin,cMax] on output images, change Brightness
 
         colormap('gray');
         boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
@@ -1213,7 +1220,6 @@ switch experiment
         cb = colorbar;
         cb.Color = 'w';
         
-
         f2.Color = 'black';
         ax2.CLim = [clim_Min, clim_Max];
         ax2.DataAspectRatio = [1 1 1];
@@ -1225,34 +1231,32 @@ switch experiment
         ax2.FontSize = 12;
         ax2.LooseInset = ax2.TightInset; % Remove whitespace around figure
         
-  
         print(f2,[folder.analysisPath,'CCD_PNG',slash,num2str(pic_ID(n)),'.png'], '-dpng','-r300');
 
         delete(f2);
       
-  
-        % for z = 1:numROIs
-        %   % Sets the RoI value in the structure to null, replacing the 4096x4096
-        %   RoI(z).fit = 0;
-        % 
-        %   % Sets the mask value in the structure to null, replacing the 4096x4096
-        %   mask(z).fit = 0;
-        % 
-        %   % Overwrites the values of each element to null
-        %   mask_crop(z).fit = 0;
-        % 
-        %   % Overwrites the values of each element to null
-        %   RoI_mask(z).fit = 0;
-        % end
-        % 
-        % % Overwrites the values of each element to null
-        % image.fit = 0;
-        % 
-        % % Overwrites the values of each element to null
-        % image_dark.fit = 0;
-        % 
-        % % Overwrites the values of each element to null
-        % img.fit = 0;
+        for z = 1:numROIs
+          % Sets the RoI value in the structure to null, replacing the 4096x4096
+          RoI(z).fit = 0;
+
+          % Sets the mask value in the structure to null, replacing the 4096x4096
+          mask(z).fit = 0;
+
+          % Overwrites the values of each element to null
+          mask_crop(z).fit = 0;
+
+          % Overwrites the values of each element to null
+          RoI_mask(z).fit = 0;
+        end
+
+        % Overwrites the values of each element to null
+        image.fit = 0;
+
+        % Overwrites the values of each element to null
+        image_dark.fit = 0;
+
+        % Overwrites the values of each element to null
+        img.fit = 0;
 
       end
     end
