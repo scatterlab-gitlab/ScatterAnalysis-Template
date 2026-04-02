@@ -90,7 +90,7 @@ DEBUG = 1;
 locate_ROI = 0;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
-total_images = 1;
+total_images = 4;
 
 % Assign a value for n which will be the image number you want to evaluate
 % before the entire script begins. This is good for checking the distance
@@ -1014,7 +1014,7 @@ switch experiment
         cb_debug = colorbar;
         cb_debug.Color = 'w';
 
-        colormap('gray');
+        colormap('jet');
         ax1.CLim = [clim_Min, clim_Max];
         ax1.DataAspectRatio = [1 1 1];
         ax1.TickDir = 'in';
@@ -1194,7 +1194,7 @@ switch experiment
         
         hold on;
 
-        colormap('gray');
+        
         boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
@@ -1217,10 +1217,15 @@ switch experiment
         axis square;
         axis on;
 
+        
+
         cb = colorbar;
         cb.Color = 'w';
         
-        f2.Color = 'black';
+        f2.Color = 'black'; % Backgound of image is black
+
+        colormap('gray');
+        
         ax2.CLim = [clim_Min, clim_Max];
         ax2.DataAspectRatio = [1 1 1];
         ax2.TickDir = 'in';
@@ -1315,7 +1320,7 @@ switch experiment
       ax4.Box = 'on';
       grid on;
 
-      legend('Incident Power', 'Calibrated Monitor Power');
+      legend('Corrected Monitor Power');
       
       saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.fig']);
       saveas(f4, [folder.analysisPath,folder.sample_name,slash,'Calibrated_monitor_power_',folder.timeAnalysis,'_', folder.sample_name,'.png']);
