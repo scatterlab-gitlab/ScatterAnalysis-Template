@@ -62,10 +62,10 @@ mock_ARS_data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared
 % String path to the folder will all the data
 % folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2026_2_20_12_1_27_PL004_test_run_attempt_5';
 % folder.data_path = '/Users/scatterlab/CSU Fullerton Dropbox/Scatter Lab/Shared/Data/GWPAC_Lab_Data/ARS_TRS/2022-2-9_19-39_PL004_SLED_ARS_COPY';
-folder.data_path = mock_AAS_data_path;
+folder.data_path = mock_ARS_data_path;
 
 % AAS, ARS, CRYO, or TRS (Case Sensitive!!!)
-experiment = 'AAS';
+experiment = 'ARS';
 
 % Note to save as a text file about analysis specifics or changes
 note_text = 'Debugging';
@@ -87,7 +87,7 @@ DEBUG = 1;
 
 % If locateROI = 1, script will only display 'image_Selector' and let you adjust ROI
 % If locateROI = 0, script runs normally
-locate_ROI = 0;
+locate_ROI = 1;
 
 % Number of images that will be analysed (DOES NOT effect ARS)
 total_images = 4;
@@ -1014,7 +1014,7 @@ switch experiment
         cb_debug = colorbar;
         cb_debug.Color = 'w';
 
-        colormap('jet');
+        colormap('gray');
         ax1.CLim = [clim_Min, clim_Max];
         ax1.DataAspectRatio = [1 1 1];
         ax1.TickDir = 'in';
@@ -1803,7 +1803,7 @@ switch experiment
         % max's are, and input them accordingly
     
         % Plot the image and RoIs
-        figure;
+        f_ARS_locate = figure;
         ax1 = gca;
 
         % Plot the CCD image with the converted x and y values
@@ -1841,12 +1841,21 @@ switch experiment
                          'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1]);
 
         % CCD image properties
-        colorbar;
+
+        f_ARS_locate.Color = 'black'; % Backgound of image is black
+
+        f_debug.Color = 'black';
+
+        cb_debug = colorbar;
+        cb_debug.Color = 'w';
+
         colormap('gray');
         ax1.CLim = [clim_Min, clim_Max];
-        % ax1.XTick = -8:1:8;
-        % ax1.YTick = -8:1:8;
         ax1.DataAspectRatio = [1 1 1];
+        ax1.TickDir = 'in';
+        ax1.XColor = 'w';
+        ax1.YColor = 'w';
+        ax1.XRuler.TickLabelGapOffset = 10;
 
         return
       end
@@ -2072,15 +2081,13 @@ switch experiment
       if print_images == 1
 
         f2 = figure('Visible','off');
-        ax5= gca;
+        ax2= gca;
 
         % Plot image with proper scale
         imagesc(img_x_mm, img_y_mm, img.fit);
 
         hold on;
-        % Adjusts Colormap limits [cMin,cMax] on output images, change Brightness
-        ax5.CLim = [clim_Min, clim_Max];
-        colormap('gray');
+
         boxcolors = {[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1],[0 1 1]};
         linewidth = {.5, .1, .1, .1, .1, .1};
         linestyle = {'-',':',':',':',':',':'};
@@ -2098,7 +2105,6 @@ switch experiment
               ,'g-',[bx1 bx1 bx2 bx2 bx1],[by1 by2 by2 by1 by1],'r-'...
               ,[LIMITx1 LIMITx1 LIMITx2 LIMITx2 LIMITx1]...
               ,[LIMITy1 LIMITy2 LIMITy2 LIMITy1 LIMITy1],'b-')
-          ax5.FontSize = 18;
         end
 
         text((200 / pix_per_mm) - pixel_x_shift, (3886 / pix_per_mm) - pixel_y_shift, [' \newline',EXPOSURETIME,'\newline',ANGLEtheta_s,...
@@ -2106,11 +2112,22 @@ switch experiment
             '\newline',SPATIALFREQ,'\newline',PSD,'\newline',SIGMA],...
             'VerticalAlignment','bottom','HorizontalAlignment','left','FontSize',10, 'Color', [1-eps 1 1])
         
-        title([folder.sample_name,', image ',char(image_name)], 'FontSize',20,'FontName','Times New Roman','Interpreter', 'none');
-        set(gcf,'units','points','position',[0 0 480 480]) % make it a square
-        set(ax5,'position',[0 0 1 1]) % make square axes fill the figure
-        axis square;
-        axis off;
+        cb = colorbar;
+        cb.Color = 'w';
+        
+        f2.Color = 'black'; % Backgound of image is black
+
+        colormap('gray');
+        
+        ax2.CLim = [clim_Min, clim_Max];
+        ax2.DataAspectRatio = [1 1 1];
+        ax2.TickDir = 'in';
+        ax2.XColor = 'w';
+        ax2.YColor = 'w';
+        ax2.XLabel.String = 'X (mm)';
+        ax2.YLabel.String = 'Y (mm)';
+        ax2.FontSize = 12;
+        ax2.LooseInset = ax2.TightInset; % Remove whitespace around figure
 
         print(gcf,[folder.analysisPath,'CCD_PNG',slash,num2str(n),'.png'], '-dpng','-r300');
         
