@@ -292,7 +292,7 @@ end
    case 'AAS'
      pix_per_mm = 239.3;
    case 'ARS'
-     pix_per_mm = 239.3; % THIS IS VERY WRONG!!!! ONLY USING THIS FOR DEBUGGING PURPOSES!!!!!!!!!!
+     pix_per_mm = 117;
  end
 
 % Uncertainty in power monitor measurement from Thorlab specs
